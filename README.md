@@ -1,11 +1,10 @@
 # pacat
-## Introduction
 Pacman Shell Wrapper, to order and manager your packages in easy text files
 ## Description and Use
 This is an easy shell script, that lets you sort your packages in categories, aka plain text files
-Example: `pacat -S firefox -c gui -c all` installs firefox and adds it to the categories gui and all
-Example: `pacat -S neovim` just installs firefox
-Example: `pacat -Rs vim -c editors -c all` uninstalls vim and removes it from the categories editors and all
+- Example: `pacat -S firefox -c gui -c all` installs firefox and adds it to the categories gui and all
+- Example: `pacat -S neovim` just installs firefox
+- Example: `pacat -Rs vim -c editors -c all` uninstalls vim and removes it from the categories editors and all
 ## Installation
 clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
 ## TODO
