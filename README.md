@@ -26,6 +26,7 @@ clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
 - make cat shut up if file does not exist
 - aur helper support (define pacman command in pacat.sh)
 - maybe add option to print out category file
+- Add Option to uninstall everything not in categorie files provided and install everything that is in them(only diff, compare with pacman -Qe to not uninstall dependencies)
 - allow configuration(directly in pacat.sh and as arguments) for:
     1. remove packages from all categories during uninstall
     2. default categories
