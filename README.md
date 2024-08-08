@@ -28,6 +28,8 @@ clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
 - maybe add option to print out category file
 - ~~Add Option to uninstall everything not in categorie files provided and install everything that is in them(only diff, compare with pacman -Qe to not uninstall dependencies)~~ Implemented as -s
 - Support autocomplete if possible
+- Be POSIX compliant
+- Fix -s: Programs that are installed/removed at the same time are not handeld properly at all(if does not work, dont remove package if it is also declared to be installed as argument)(example: pacat -S vim -s; removes vim if it is not in the category file)
 - allow configuration(directly in pacat.sh and as arguments) for:
     1. remove packages from all categories during uninstall
     2. default categories
