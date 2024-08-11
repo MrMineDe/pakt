@@ -1,10 +1,10 @@
 # pacat
-Pacman Shell Wrapper, to order and manage your packages in categories
+Pacman Shell Wrapper, to order and manage your packages in categories.
 ## What are Categories?
 Categories are just simple text files.
 All categories are stored in .local/share/pacat/ as file.
 Every line is one package. They can be modified by hand easily without any complications.
-## Description and Syntax 
+## Description and Syntax
 This is an easy shell script, that lets you sort your packages in categories, aka plain text files
 - Example: `pacat -S firefox -c gui -c all` installs firefox and adds it to the categories gui and all
 - Example: `pacat -S neovim` just installs neovim
