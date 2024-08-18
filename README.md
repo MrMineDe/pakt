@@ -1,22 +1,34 @@
-# pacat
-Pacman Shell Wrapper, to order and manage your packages in categories.
-## What are Categories?
-Categories are just simple text files.
-All categories are stored in .local/share/pacat/ as file.
-Every line is one package. They can be modified by hand easily without any complications.
-## Description and Syntax
-This is an easy shell script, that lets you sort your packages in categories, aka plain text files
-- Example: `pacat -S firefox -c gui -c all` installs firefox and adds it to the categories gui and all
-- Example: `pacat -S neovim` just installs neovim
-- Example: `pacat -Rs vim -c editors -c all` uninstalls vim and removes it from the categories editors and all
+# Pakt
+Pakt (PAcman KaTegories) is a Pacman shell wrapper for categorizing packages.
+
+## What are categories?
+You can order the packages you install in categories. They are stored in plain text files at `$HOME/.local/share/pakt/`, like this:
+
+```
+$HOME/.local/share/pakt/dev
+---------------------------
+emacs
+typescript
+clang
+rustup
+```
+
+## Syntax
+| Example                       | Description                                                 |
+| ---                           | ---                                                         |
+| pakt -S neovim                | Pakt can act as a regular AUR helper                        |
+| pakt -S firefox -c gui -c all | installs Firefox and assigns the categories `gui` and `all` |
+| pakt -Rns vim -c editors      | Uninstalls vim and removes it from the `editors` category   |
+| pakt -f gui                   | Sync all packages listed in `$HOME/.local/share/pakt/gui`   |
+
 ## Usecases
-- Useful for resetting your system. You can easily get set up on the new system.
-- Store all installed packages in categories.
-Then, if you want to install/uninstall packages you can edit the categoryfile (or edit it through the command line)
-and refresh your system. A bit like nix but with the benefits of pacman.
-- Just have an overview over all the packages you are installing over the years and remember to remove them from time to time
+- Don't keep unused packages on your system by having an overview.
+- Set up your system by installing your packages from the category files (kinda like in NixOS).
+- Uninstall temporary packages (e.g. utilities for programming projects).
+
 ## Installation
-clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
+Move `pakt.sh` to a PATH directory, e.g. `$HOME/.local/bin/`.
+
 ## TODO
 - allow only adding/removing packages from categories without install/uninstall
 - support all pacman commands (subcommands with more arguments are not supported, commands after the first argument are interpreted as package)
@@ -24,7 +36,7 @@ clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
 - support XDG
 - Help command
 - make cat shut up if file does not exist
-- aur helper support (define pacman command in pacat.sh)
+- aur helper support (define pacman command in pacat.sh) (warn from using Aura)
 - maybe add option to print out category file
 - ~~Add Option to uninstall everything not in categorie files provided and install everything that is in them(only diff, compare with pacman -Qe to not uninstall dependencies)~~ Implemented as -s
 - Support autocomplete if possible
@@ -33,5 +45,13 @@ clone the repository and move pacat.sh to some path in PATH. E.g. ~/.local/bin/
 - allow configuration(directly in pacat.sh and as arguments) for:
     1. remove packages from all categories during uninstall
     2. default categories
-    3. (cmd arg only)exclude default category
-    4. (cmd arg only)ignore pacman return value
+    3. (cmd arg only) exclude default category
+    4. (cmd arg only) ignore pacman return value
+
+### TODOs of the co-author
+- add `## Configuration` to README
+- assign to multiple categories through comma-separation
+- remove categories with -C flag
+	- `-C kat` removes from `kat`, `-C ` removes from all
+- install packages from files with `-f`
+- update README after new flags have been implemented
