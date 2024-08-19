@@ -16,9 +16,10 @@ rustup
 ## Syntax
 | Example                       | Description                                                 |
 | ---                           | ---                                                         |
-| pakt -S neovim                | Pakt can act as a regular AUR helper                        |
-| pakt -S firefox -c gui -c all | installs Firefox and assigns the categories `gui` and `all` |
-| pakt -Rns vim -c editors      | Uninstalls vim and removes it from the `editors` category   |
+| pakt -S neovim                | Pakt can act as a replacement of pacman|
+| pakt -S aur/neovim-git	| but can also be configured as a wrapper for aur helpers like yay|
+| pakt -S firefox -C gui -C all | installs Firefox and assigns the categories `gui` and `all` |
+| pakt -Rns vim -C editors      | Uninstalls vim and removes it from the `editors` category   |
 | pakt -f gui                   | Sync all packages listed in `$HOME/.local/share/pakt/gui`   |
 
 ## Usecases
@@ -30,28 +31,4 @@ rustup
 Move `pakt.sh` to a PATH directory, e.g. `$HOME/.local/bin/`.
 
 ## TODO
-- allow only adding/removing packages from categories without install/uninstall
-- support all pacman commands (subcommands with more arguments are not supported, commands after the first argument are interpreted as package)
-- allow install/uninstall of all packages in files
-- support XDG
-- Help command
-- make cat shut up if file does not exist
-- aur helper support (define pacman command in pacat.sh) (warn from using Aura)
-- maybe add option to print out category file
-- ~~Add Option to uninstall everything not in categorie files provided and install everything that is in them(only diff, compare with pacman -Qe to not uninstall dependencies)~~ Implemented as -s
-- Support autocomplete if possible
-- Be POSIX compliant
-- Fix -s: Programs that are installed/removed at the same time are not handeld properly at all(if does not work, dont remove package if it is also declared to be installed as argument)(example: pacat -S vim -s; removes vim if it is not in the category file)
-- allow configuration(directly in pacat.sh and as arguments) for:
-    1. remove packages from all categories during uninstall
-    2. default categories
-    3. (cmd arg only) exclude default category
-    4. (cmd arg only) ignore pacman return value
-
-### TODOs of the co-author
-- add `## Configuration` to README
-- assign to multiple categories through comma-separation
-- remove categories with -C flag
-	- `-C kat` removes from `kat`, `-C ` removes from all
-- install packages from files with `-f`
-- update README after new flags have been implemented
+See the [todo project](https://github.com/users/MrMineDe/projects/1) and the respective issues
