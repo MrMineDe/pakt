@@ -1,4 +1,5 @@
-#!/bin/bash # TODO /bin/sh is wip!
+#!/bin/sh
+# TODO /bin/sh is wip!
 
 # maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
 stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
@@ -13,52 +14,58 @@ pth="$HOME/.local/share/pacat"
 CAT="default"
 CMD="pacman"
 PAC=""
-MODE=${1:1:1}
+MODE=""
 SYNC=0
 
-i=1
-# interpret the input
-while [ $i -le $# ]; do
-	case ${!i} in
+# This is used, to save the state of -C argument, to store the ARG after -C
+DASH_C_TRUE=0
+for A in "$@"; do
+	if [ "$DASH_C_TRUE" -eq 1 ]; then
+		CAT="${CAT} ${A}"
+		DASH_C_TRUE=0
+		continue;
+	fi
+	case "$A" in
 		-*)
-			case ${!i} in
+			case "$A" in
 				*S*)
 					MODE="S"
-					ARG="${ARG} ${!i}"
+					ARG="${ARG} ${A}" #${!i}"
 				;;
 				*R*)
 					MODE="R"
-					ARG="${ARG} ${!i}"
+					ARG="${ARG} ${A}"
 				;;
 				# TODO Add -Q capability
 				"-C")
-					if [ "$i" -ge "$#" ]; then
-						echo "Syntax: -C ARG ; -C needs one argument! See pakt -h for more info"
-						exit
-					fi
-					i="$((i+1))"
-					CAT="${CAT} ${!i}"
+					# We want to store the argument after -C, so we set a variable that will store the next element and then skip to the next word
+					DASH_C_TRUE=1
 				;;
 				# TODO change this to smth, that resembles sync, but is not taken by pacman
 				"-ABC")
 					SYNC=1
 				;;
 				*)
-					ARG="${ARG} ${!i}"
+					ARG="${ARG} ${A}"
 				;;
 			esac
 		;;
 		*)
 			# TODO is there anything that is not started with - but still no package?
-			PAC="${PAC} ${!i}"
+			PAC="${PAC} ${A}"
 		;;
 	esac
 	i="$((i+1))"
 done
+# If -C is the last argument, throw an error!
+if [ "$DASH_C_TRUE" -eq 1 ]; then
+	echo "Syntax: -C ARG ; -C needs one argument! See pakt -h for more info"
+	exit
+fi
 
 # Execute pacman
 if [ $SYNC -eq 0 ]; then
-	if ! "sudo $CMD $ARG $PAC"; then
+	if ! sudo $CMD $ARG $PAC; then
 		echo "Pacman returned a fail. Exiting..."
 		exit
 	fi
@@ -67,14 +74,7 @@ else # -s, sync the packages
 	PAC_BASE=$(sudo $CMD -Qq)
 	PAC_ADD=""
 	# We want to combine all the categoriyfiles we got as parameter
-	CAT_CP="$CAT"
-	while [ -n "$CAT_CP" ]; do
-		# TODO So the problem here is, that the last word has no space at the end. Therefor REST removes nothing and the while goes on forever
-		REST="${CAT_CP#* }"
-		C="${CAT_CP%"$REST"}"
-		echo "$CAT_CP"
-		echo "$REST"
-		echo "$C"
+	for c in $CAT; do
 		# We unfortunately have to do this for every entry in every categoryfile...
 		while read -r p; do
 			# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
@@ -83,17 +83,16 @@ else # -s, sync the packages
 			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
 				PAC_ADD="${PAC_ADD} ${p}"
 			fi
-		done < "$pth/$C"
-		CAT_CP=$REST
+		done < "$pth/$c"
 	done
+	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
+	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
 	# We want to install/remove all the packages specified in the command as well
 	# TODO This does not work as intended atm
-	echo "${MODE%"${MODE#?}"}"
-	if [ -n "$PAC" ] && [ "${MODE%"${MODE#?}"}" = "S" ]; then
-		echo "${MODE%"${MODE#?}"}"
+	if [ -n "$PAC" ] && [ "$MODE" = "S" ]; then
 		PAC_ADD="${PAC_ADD} ${PAC}"
 	fi
-	if [ -n "$PAC" ] && [ "${MODE%"${MODE#?}"}" = "R" ]; then
+	if [ -n "$PAC" ] && [ "$MODE" = "R" ]; then
 		PAC_DEL="${PAC_DEL} ${PAC}"
 	fi
 	# To be safe, we print the Packages to remove and install before calling pacman
@@ -107,13 +106,13 @@ else # -s, sync the packages
 	# TODO Decide if sync should also do a full system upgrade.
 	# This would also reduce the danger of partial upgrades/corrupt packages etc.
 	if [ -n "$PAC_DEL" ]; then
-		if ! sudo pacman -Rs "$PAC_DEL"; then
+		if ! sudo pacman -Rs $PAC_DEL; then
 			echo "Pacman returned a fail. Exiting..."
 			exit
 		fi
 	fi
 	if [ -n "$PAC_ADD" ]; then
-		if ! sudo pacman -Sy "$PAC_ADD"; then
+		if ! sudo pacman -Sy $PAC_ADD; then
 			echo "Pacman returned a fail. Exiting..."
 			exit
 		fi
@@ -122,8 +121,8 @@ fi
 
 # Create path if it doesnt exist
 mkdir -p "$pth"
-for f in ${CAT[@]}; do
-	for p in ${PAC[@]}; do
+for f in $CAT; do
+	for p in $PAC; do
 		case $MODE in
 			S) # Add Package
 				# Check if Package is already in file, then dont add it
