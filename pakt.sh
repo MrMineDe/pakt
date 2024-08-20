@@ -120,6 +120,8 @@ else # -s, sync the packages
 	done
 	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
 	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
+	echo $PAC_DEL
+	echo $PAC_ADD
 	# We want to install/remove all the packages specified in the command as well
 	# TODO This does not work as intended atm
 	if [ -n "$PAC" ] && [ "$MODE" = "S" ]; then
@@ -128,6 +130,14 @@ else # -s, sync the packages
 	if [ -n "$PAC" ] && [ "$MODE" = "R" ]; then
 		PAC_DEL="${PAC_DEL} ${PAC}"
 	fi
+	# If there are any packages that would get installed and uninstalled, we need to throw an error
+	# TODO DECIDE if we really need to throw an error or rather handle it differently
+	for p in $PAC_DEL; do
+		if ! stringNotContain "$(echo "$PAC_ADD" | tr '\n' ' ')" " $p "; then
+			  echo "Invalid arguments! You would install and remove $p! Exiting..."
+			  exit
+		fi
+	done
 	# To be safe, we print the Packages to remove and install before calling pacman
 	if [ -n "$PAC_DEL" ]; then
 		echo "Removing(dependencies not listed): $PAC_DEL"
