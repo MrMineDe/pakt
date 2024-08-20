@@ -9,7 +9,11 @@ if [ "$1" = "-h" ]; then
 	exit
 fi
 
-pth="$HOME/.local/share/pacat"
+if [ -z $XDG_DATA_HOME ]; then
+	pth="$HOME/.local/share/pakt"
+else
+	pth="$HOME/$XDG_DATA_HOME/pakt"
+fi
 CAT="default"
 CMD="pacman"
 PAC=""
