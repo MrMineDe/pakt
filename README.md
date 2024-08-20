@@ -2,7 +2,7 @@
 Pakt (PAcman KaTegories) is a Pacman shell wrapper for categorizing packages.
 
 ## What are categories?
-You can order the packages you install in categories. They are stored in plain text files at `$HOME/.local/share/pakt/`, like this:
+You can order the packages you install in categories. They are stored in plain text files at `$XDG_DATA_HOME/pakt/`, like this:
 
 ```
 $HOME/.local/share/pakt/dev
