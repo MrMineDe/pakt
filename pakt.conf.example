@@ -1,0 +1,29 @@
+# This is the example config file for pakt.
+# The config is pure shell script.
+# It gets sourced directly into the program.
+# Therefor you should be cautious that for example the CMD variable is correct,
+# as pakt will try to run the command with sudo!
+# If you want to be extra cautious, make it read only for normal users
+# also be warned about the possibilities of defining PAKT_CONFIG_PATH
+
+# This defines the default categories, that are always included when running pakt
+# Currently there is no way to exclude these categories by invoking some kind of flag when running pakt.
+CAT="default"
+# The package manager you want to use.
+# Currently pacman and aur helper that accept the same syntax as pacman are supported (e.g. yay).
+# However if you want to save aur packages, you should invoke the packages with aur/packagename
+CMD="pacman"
+# The path, where the packagefiles will be stored.
+# Default is XDG_DATA_HOME/pakt or .local/share/pakt if XDG is undefined
+if [ -z $XDG_DATA_HOME ]; then
+	PTH="$HOME/.local/share/pakt"
+else
+	PTH="$XDG_DATA_HOME/pakt"
+fi
+# Default Mode, to run the package manager in.
+# Default is undefined, but possible entrys are 'R', 'S' as used in pacman for Remove and Sync/Install
+MODE=""
+
+# Also if you want to change the location of this config file:
+# export PAKT_CONFIG_PATH
+# to the directory (e.g. /home/user/.config/pakt/pakt.conf ) with a absolute path

@@ -9,15 +9,45 @@ if [ "$1" = "-h" ]; then
 	exit
 fi
 
-if [ -z $XDG_DATA_HOME ]; then
-	pth="$HOME/.local/share/pakt"
+# Source the config file
+# TODO DECIDE if -r is really needed, it adds a bit of clutter
+# TODO DECIDE if there is no config, we should add the default config as config
+ACTIVATE_DEF_CONF=0
+if [ -z $PAKT_CONFIG_PATH ]; then
+	if [ -e "$HOME/.config/pakt/pakt.conf" ]; then
+		if [ -r "$HOME/.config/pakt/pakt.conf" ]; then
+			. "$HOME/.config/pakt/pakt.conf"
+		else
+			echo "'$HOME/.config/pakt/pakt.conf' cant be opened (but is there), check the permissions!"
+		fi
+	else
+		ACTIVATE_DEF_CONF=1
+	fi
 else
-	pth="$HOME/$XDG_DATA_HOME/pakt"
+	if [ -e "$PAKT_CONFIG_PATH" ]; then
+		if [ -r "$PAKT_CONFIG_PATH" ]; then
+			. "$PAKT_CONFIG_PATH"
+		else
+			echo "'$PAKT_CONFIG_PATH' cant be opened (but is there), check the permissions!"
+		fi
+		. "$PAKT_CONFIG_PATH"
+	else
+		ACTIVATE_DEF_CONF=1
+	fi
+	. "$PAKT_CONFIG_PATH"
 fi
-CAT="default"
-CMD="pacman"
+if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
+	CAT="default"
+	CMD="pacman"
+	if [ -z $XDG_DATA_HOME ]; then
+		PTH="$HOME/.local/share/pakt"
+	else
+		PTH="$XDG_DATA_HOME/pakt"
+	fi
+	MODE=""
+fi
+
 PAC=""
-MODE=""
 SYNC=0
 
 # This is used, to save the state of -C argument, to store the ARG after -C
@@ -86,7 +116,7 @@ else # -s, sync the packages
 			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
 				PAC_ADD="${PAC_ADD} ${p}"
 			fi
-		done < "$pth/$c"
+		done < "$PTH/$c"
 	done
 	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
 	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
@@ -123,18 +153,18 @@ else # -s, sync the packages
 fi
 
 # Create path if it doesnt exist
-mkdir -p "$pth"
+mkdir -p "$PTH"
 for f in $CAT; do
 	for p in $PAC; do
 		case $MODE in
 			S) # Add Package
 				# Check if Package is already in file, then dont add it
-				if [ "$p" != "$(grep "^$p\$" "$pth/$f")" ]; then
-					echo "$p" >> "$pth/$f"
+				if [ "$p" != "$(grep "^$p\$" "$PTH/$f")" ]; then
+					echo "$p" >> "$PTH/$f"
 				fi
 				;;
 			R) # Remove Package
-				sed -n "/^$p\$/"'!'"p" "$pth/$f" | tee "$pth/$f" > /dev/null # You cant pipe directly into pth/f bc the pipe is opened first, therefor the file is beeing cleared, therefor sed opens a empty file
+				sed -n "/^$p\$/"'!'"p" "$PTH/$f" | tee "$PTH/$f" > /dev/null # You cant pipe directly into PTH/f bc the pipe is opened first, therefor the file is beeing cleared, therefor sed opens a empty file
 				;;
 		esac
 	done
