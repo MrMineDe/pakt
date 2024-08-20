@@ -165,6 +165,9 @@ fi
 # Create path if it doesnt exist
 mkdir -p "$PTH"
 for f in $CAT; do
+	# This will make sure, that there are no error messages about a categoryfile not existing
+	# These errors are not fatal, but the user should not see them!
+	touch "$PTH/$f"
 	for p in $PAC; do
 		case $MODE in
 			S) # Add Package
