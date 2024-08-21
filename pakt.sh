@@ -10,36 +10,29 @@ if [ "$1" = "-h" ]; then
 fi
 
 # Source the config file
-# TODO DECIDE if -r is really needed, it adds a bit of clutter
-# TODO DECIDE if there is no config, we should add the default config as config
+# TODO DECIDE if there is no config, we should copy the default config as configfile and load that instead of defining it here
+# Define the location where we search for the config file
 ACTIVATE_DEF_CONF=0
-if [ -z $PAKT_CONFIG_PATH ]; then
-	if [ -e "$HOME/.config/pakt/pakt.conf" ]; then
-		if [ -r "$HOME/.config/pakt/pakt.conf" ]; then
-			. "$HOME/.config/pakt/pakt.conf"
-		else
-			echo "'$HOME/.config/pakt/pakt.conf' cant be opened (but is there), check the permissions!"
-		fi
+if [ -z "$PAKT_CONFIG_PATH" ]; then
+	if [ -z "$XDG_CONFIG_HOME" ]; then
+		CONF_PATH="$XDG_CONFIG_HOME/pakt/pakt.conf"
 	else
-		ACTIVATE_DEF_CONF=1
+		CONF_PATH="$HOME/.config/pakt/pakt.conf"
 	fi
 else
-	if [ -e "$PAKT_CONFIG_PATH" ]; then
-		if [ -r "$PAKT_CONFIG_PATH" ]; then
-			. "$PAKT_CONFIG_PATH"
-		else
-			echo "'$PAKT_CONFIG_PATH' cant be opened (but is there), check the permissions!"
-		fi
-		. "$PAKT_CONFIG_PATH"
-	else
-		ACTIVATE_DEF_CONF=1
-	fi
-	. "$PAKT_CONFIG_PATH"
+	CONF_PATH="$PAKT_CONFIG_PATH"
 fi
+# Now check if config file is there and load it
+if [ -e "$CONF_PATH" ]; then
+	. "$CONF_PATH"
+else
+	ACTIVATE_DEF_CONF=1
+fi
+
 if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
 	CAT="default"
 	CMD="pacman"
-	if [ -z $XDG_DATA_HOME ]; then
+	if [ -z "$XDG_DATA_HOME" ]; then
 		PTH="$HOME/.local/share/pakt"
 	else
 		PTH="$XDG_DATA_HOME/pakt"
@@ -120,8 +113,6 @@ else # -s, sync the packages
 	done
 	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
 	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
-	echo $PAC_DEL
-	echo $PAC_ADD
 	# We want to install/remove all the packages specified in the command as well
 	# TODO This does not work as intended atm
 	if [ -n "$PAC" ] && [ "$MODE" = "S" ]; then
