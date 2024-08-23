@@ -1,4 +1,5 @@
 #!/bin/sh
+# TODO END CONSIDER changing pakt.sh to pakt
 
 # maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
 stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
