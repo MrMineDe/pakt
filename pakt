@@ -3,9 +3,25 @@
 # maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
 stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
 
-# TODO Change -h, as it is used by pacman!
-if [ "$1" = "-h" ]; then
-	echo "This will be the help page"
+# TODO DECIDE if we want a short flag like -h and overwrite the pacman flag
+if [ "$#" -eq 0 ] || [ "$1" = "--pakt-help" ]; then
+	echo "Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
+
+Usage: pakt (pacman/aur helper flags) package ... [+category] ...
+    or pakt --help
+    or pakt -h
+
+Examples:
+    # Just use pakt as a pacman/AUR helper wrapper
+    pakt -S neovim
+
+    # Installs neovim and assigns it to the \"editors\" category
+    pakt -S neovim +editors
+
+    # Performs system update, installs htop and lf both in the \"cli\" category,
+    # firefox in \"basic\" but git in none
+    pakt -Syu htop lf +cli firefox +basic git"
+
 	exit
 fi
 
@@ -38,6 +54,11 @@ if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
 		PTH="$XDG_DATA_HOME/pakt"
 	fi
 	MODE=""
+else
+	# shorten the config variable names
+	CMD="$PACKAGE_MANAGER"
+	CAT="$DEFAULT_CATEGORIES"
+	PTH="$PAKT_PATH"
 fi
 
 PAC=""
