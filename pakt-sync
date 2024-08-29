@@ -37,6 +37,13 @@ MNL_PKG_CMD="$ALL_MANUAL_INSTALLED_PACKAGES_CMD"
 CMD_ARG_INSTALL="$PACKAGE_MANAGER_ARG_INSTALL"
 CMD_ARG_UNINSTALL="$PACKAGE_MANAGER_ARG_UNINSTALL"
 
+# The Mode of the script. Possible are:
+# 1. Add: install all packages in provided files
+# 2. Remove: Remove all packages in provided files
+# 3. Normal Sync: Sync all installed packages with provided files
+# Default is Sync, but if "add" or "rm" is found as an argument it is changed
+MODE="sync"
+
 for A in "$@"; do
 	case "$A" in
 		# if we see one of these we already printed the help page and can exit.
@@ -46,6 +53,12 @@ for A in "$@"; do
 		;;
 		"--pakt-help")
 			exit
+		;;
+		"add")
+			MODE="add"
+		;;
+		"rm")
+			MODE="rm"
 		;;
 		"+"*)
 			# This allows the syntax of: +cat1,cat2,test,cli
@@ -60,23 +73,47 @@ for A in "$@"; do
 done
 
 # Sync the packages
-PAC_DEL=$($MNL_PKG_CMD)
-PAC_BASE=$($ALL_PKG_CMD)
-PAC_ADD=""
-# We want to combine all the categoriyfiles we got as parameter
-for c in $CAT; do
-	# We unfortunately have to do this for every entry in every categoryfile...
-	while read -r p; do
-		# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
-		PAC_DEL=$(echo "$PAC_DEL" | tr ' ' '\n' | grep -v "^$p\$")
-		# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
-		if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
-			PAC_ADD="${PAC_ADD} ${p}"
-		fi
-	done < "$PTH/$c"
-done
-# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
-PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
+if [ "$MODE" = "add" ]; then
+	for c in $CAT; do
+		while read -r p; do
+			# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
+			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
+				PAC_ADD="${PAC_ADD} ${p}"
+			fi
+		done < "$PTH/$c"
+	done
+elif [ "$MODE" = "rm" ]; then
+	for c in $CAT; do
+		PAC_DEL="${PAC_DEL} $(cat "$PTH/$c")"
+	done
+	# We only want to remove packages we have installed.
+	PAC_ORIG_FILE=$(mktemp)
+	PAC_DEL_FILE=$(mktemp)
+	$ALL_PKG_CMD | tr ' ' '\n' | sort > "$PAC_DEL_FILE"
+	echo "$PAC_DEL" | tr ' ' '\n' | sort > "$PAC_ORIG_FILE"
+
+	PAC_DEL=$(comm -12 "$PAC_ORIG_FILE" "$PAC_DEL_FILE"| tr '\n' ' ')
+
+elif [ "$MODE" = "sync" ]; then
+	PAC_DEL=$($MNL_PKG_CMD)
+	PAC_BASE=$($ALL_PKG_CMD)
+	PAC_ADD=""
+
+	# We want to combine all the categoriyfiles we got as parameter
+	for c in $CAT; do
+		# We unfortunately have to do this for every entry in every categoryfile...
+		while read -r p; do
+			# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
+			PAC_DEL=$(echo "$PAC_DEL" | tr ' ' '\n' | grep -v "^$p\$")
+			# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
+			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
+				PAC_ADD="${PAC_ADD} ${p}"
+			fi
+		done < "$PTH/$c"
+	done
+	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
+	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
+fi
 
 # To be safe, we print the Packages to remove and install before calling pacman
 if [ -n "$PAC_DEL" ]; then
