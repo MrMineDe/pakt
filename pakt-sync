@@ -1,0 +1,116 @@
+#!/bin/sh
+
+# maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
+stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
+
+if [ "$1" = "--pakt-help" ] || [ "$1" = "-h" ]; then
+	echo "This tool allows you to sync all packages installed on the system with the categoryfiles you provide.\n \
+		Syntax: pakt-sync +cat1 +test2 +def +cli"
+	exit
+fi
+
+# Source the config file
+# TODO DECIDE if there is no config, we should copy the default config as configfile and load that instead of defining it here
+# Define the location where we search for the config file
+ACTIVATE_DEF_CONF=0
+if [ -z "$PAKT_CONFIG_PATH" ]; then
+	if [ -z "$XDG_CONFIG_HOME" ]; then
+		CONF_PATH="$XDG_CONFIG_HOME/pakt/pakt.conf"
+	else
+		CONF_PATH="$HOME/.config/pakt/pakt.conf"
+	fi
+else
+	CONF_PATH="$PAKT_CONFIG_PATH"
+fi
+# Now check if config file is there and load it
+if [ -e "$CONF_PATH" ]; then
+	. "$CONF_PATH"
+else
+	ACTIVATE_DEF_CONF=1
+fi
+
+if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
+	CAT="default"
+	CMD="pacman"
+	if [ -z "$XDG_DATA_HOME" ]; then
+		PTH="$HOME/.local/share/pakt"
+	else
+		PTH="$XDG_DATA_HOME/pakt"
+	fi
+else
+	# shorten the config variable names
+	CMD="$PACKAGE_MANAGER"
+	CAT="$DEFAULT_CATEGORIES"
+	PTH="$PAKT_PATH"
+fi
+
+ARG_WAS_CAT=0
+# All installed packages
+ALL_PKG_CMD="sudo pacman -Qq"
+# All by user installed packages (excluding dependencies)
+MNL_PKG_CMD="sudo pacman -Qeq"
+# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
+CMD_ARG_INSTALL="-Sy"
+CMD_ARG_UNINSTALL="-Rs"
+
+for A in "$@"; do
+	case "$A" in
+		# if we see one of these we already printed the help page and can exit.
+		# We do this check, because all other - options, or rather anything else, that is not +cat is considered a syntax error
+		"-h")
+			exit
+		;;
+		"--pakt-help")
+			exit
+		;;
+		"+"*)
+			CAT="${CAT} ${A#+}"
+		;;
+		*)
+			echo "Error: Syntax! See -h or --pakt-help for more help"
+			exit
+		;;
+	esac
+done
+
+# Sync the packages
+PAC_DEL=$($MNL_PKG_CMD)
+PAC_BASE=$($ALL_PKG_CMD)
+PAC_ADD=""
+# We want to combine all the categoriyfiles we got as parameter
+for c in $CAT; do
+	# We unfortunately have to do this for every entry in every categoryfile...
+	while read -r p; do
+		# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
+		PAC_DEL=$(echo "$PAC_DEL" | tr ' ' '\n' | grep -v "^$p\$")
+		# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
+		if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
+			PAC_ADD="${PAC_ADD} ${p}"
+		fi
+	done < "$PTH/$c"
+done
+# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
+PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
+
+# To be safe, we print the Packages to remove and install before calling pacman
+if [ -n "$PAC_DEL" ]; then
+	echo "Removing(dependencies not listed): $PAC_DEL"
+fi
+if [ -n "$PAC_ADD" ]; then
+	echo "Installing: $PAC_ADD"
+fi
+# Finally sync the packages
+# TODO Decide if sync should also do a full system upgrade.
+# This would also reduce the danger of partial upgrades/corrupt packages etc.
+if [ -n "$PAC_DEL" ]; then
+	if ! $CMD $CMD_ARG_UNINSTALL $PAC_DEL; then
+		echo "Pacman returned a fail. Exiting..."
+		exit
+	fi
+fi
+if [ -n "$PAC_ADD" ]; then
+	if ! $CMD $CMD_ARG_INSTALL $PAC_ADD; then
+		echo "Pacman returned a fail. Exiting..."
+		exit
+	fi
+fi

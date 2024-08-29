@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
-stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
-
 # save all the packages for a group of categories temporarily in /tmp
 # This is needed, because we allow different categories for different packages
 # We could do this with an array of some sort, but would lose POSIX-compliancy
@@ -83,13 +80,7 @@ ARG_WAS_CAT=0
 mkdir -p /tmp/pakt
 
 # This is used, to save the state of -C argument, to store the ARG after -C
-DASH_C_TRUE=0
 for A in "$@"; do
-	if [ "$DASH_C_TRUE" -eq 1 ]; then
-		CAT="${CAT} ${A}"
-		DASH_C_TRUE=0
-		continue;
-	fi
 	case "$A" in
 		-*)
 			case "$A" in
@@ -127,77 +118,13 @@ for A in "$@"; do
 	esac
 done
 
-# If -C is the last argument, throw an error!
-if [ "$DASH_C_TRUE" -eq 1 ]; then
-	echo "Syntax: -C ARG ; -C needs one argument! See pakt --pakt-help for more info"
-	exit
-fi
-
-# Also save the last packages
+# Save the last packages
 pkg_tempsave
 
 # Execute pacman
-if [ $SYNC -eq 0 ]; then
-	if ! $CMD ; then
-		echo "Pacman returned a fail. Exiting..."
-		exit
-	fi
-# NOTE: This is broken by this commit. But we want to move this to a seperate script anyway, so idc
-else # -ABC, sync the packages
-	PAC_DEL=$(sudo $CMD -Qeq)
-	PAC_BASE=$(sudo $CMD -Qq)
-	PAC_ADD=""
-	# We want to combine all the categoriyfiles we got as parameter
-	for c in $CAT; do
-		# We unfortunately have to do this for every entry in every categoryfile...
-		while read -r p; do
-			# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
-			PAC_DEL=$(echo "$PAC_DEL" | tr ' ' '\n' | grep -v "^$p\$")
-			# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
-			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
-				PAC_ADD="${PAC_ADD} ${p}"
-			fi
-		done < "$PTH/$c"
-	done
-	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
-	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
-	# We want to install/remove all the packages specified in the command as well
-	if [ -n "$PAC" ] && [ "$MODE" = "S" ]; then
-		PAC_ADD="${PAC_ADD} ${PAC}"
-	fi
-	if [ -n "$PAC" ] && [ "$MODE" = "R" ]; then
-		PAC_DEL="${PAC_DEL} ${PAC}"
-	fi
-	# If there are any packages that would get installed and uninstalled, we need to throw an error
-	# TODO DECIDE if we really need to throw an error or rather handle it differently
-	for p in $PAC_DEL; do
-		if ! stringNotContain "$(echo "$PAC_ADD" | tr '\n' ' ')" " $p "; then
-			  echo "Invalid arguments! You would install and remove $p! Exiting..."
-			  exit
-		fi
-	done
-	# To be safe, we print the Packages to remove and install before calling pacman
-	if [ -n "$PAC_DEL" ]; then
-		echo "Removing(dependencies not listed): $PAC_DEL"
-	fi
-	if [ -n "$PAC_ADD" ]; then
-		echo "Installing: $PAC_ADD"
-	fi
-	# Finally sync the packages
-	# TODO Decide if sync should also do a full system upgrade.
-	# This would also reduce the danger of partial upgrades/corrupt packages etc.
-	if [ -n "$PAC_DEL" ]; then
-		if ! sudo pacman -Rs $PAC_DEL; then
-			echo "Pacman returned a fail. Exiting..."
-			exit
-		fi
-	fi
-	if [ -n "$PAC_ADD" ]; then
-		if ! sudo pacman -Sy $PAC_ADD; then
-			echo "Pacman returned a fail. Exiting..."
-			exit
-		fi
-	fi
+if ! $CMD ; then
+	echo "Pacman returned a fail. Exiting..."
+	exit
 fi
 
 # Check if a Mode we care about was used. Otherwise the package manager was propably used to perform some other non-installing/removing action we dont care about
