@@ -1,8 +1,11 @@
 #!/bin/sh
+# Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
+# TODO VERSION GPL-2.0
+# https://github.com/mrminede/pakt
 
-# save all the packages for a group of categories temporarily in /tmp
-# This is needed, because we allow different categories for different packages
-# We could do this with an array of some sort, but would lose POSIX-compliancy
+# Save all the packages for a group of categories temporarily in /tmp.
+# This is needed, because we allow different categories for different packages.
+# We could do this with an array of some sort, but would lose POSIX-compliancy.
 pkg_tempsave() {
 	for c in $(echo "$CAT" | tr ' ' '\n'); do
 		for p in $PAC; do
@@ -14,11 +17,11 @@ pkg_tempsave() {
 	CAT="$DEFAULT_CATEGORIES"
 }
 
-# TODO DECIDE if we want a short flag like -h and overwrite the pacman flag
 if [ "$#" -eq 0 ] || [ "$1" = "--pakt-help" ]; then
 	echo "Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
 
 Usage: pakt (pacman/aur helper flags) package ... [+category] ...
+    # TODO change help flag here
     or pakt --help
     or pakt -h
 
@@ -36,9 +39,9 @@ Examples:
 	exit
 fi
 
-# Source the config file
-# TODO DECIDE if there is no config, we should copy the default config as configfile and load that instead of defining it here
-# Define the location where we search for the config file
+# Source the config file.
+# Define the location where we search for the config file.
+# TODO LOCAL ARGUE keep either CONF_PATH variable
 ACTIVATE_DEF_CONF=0
 if [ -z "$PAKT_CONFIG_PATH" ]; then
 	if [ -z "$XDG_CONFIG_HOME" ]; then
@@ -49,7 +52,8 @@ if [ -z "$PAKT_CONFIG_PATH" ]; then
 else
 	CONF_PATH="$PAKT_CONFIG_PATH"
 fi
-# Now check if config file is there and load it
+
+# Now check if config file is there and load it.
 if [ -e "$CONF_PATH" ]; then
 	. "$CONF_PATH"
 else
@@ -75,13 +79,15 @@ fi
 PAC=""
 ARG_WAS_CAT=0
 
-# we need this dir in pkg_tempsave()
+# We need this dir in pkg_tempsave().
 mkdir -p /tmp/pakt
 
-# This is used, to save the state of -C argument, to store the ARG after -C
+# TODO LOCAL ASK "-C"?
+# This is used to save the state of -C argument, to store the ARG after -C.
 for A in "$@"; do
 	case "$A" in
 		-*)
+			# TODO LOCAL ARGUE can you merge both case-ins?
 			case "$A" in
 				*S*)
 					MODE="S"
@@ -124,33 +130,33 @@ if ! $CMD ; then
 	exit
 fi
 
-# Check if a Mode we care about was used. Otherwise the package manager was propably used to perform some other non-installing/removing action we dont care about
+# Check if a mode we care about was used. Otherwise the package manager was probably used to perform some other non-installing/removing action we don't care about.
 if [ -z "$MODE" ]; then
 	exit;
 fi
 
-# Create path if it doesnt exist
+# Create path if it doesn't exist
 mkdir -p "$PTH"
 for f in /tmp/pakt/*; do
-	# we dont want f to be /tmp/pakt/filename, but rather only filename
+	# We don't want f to be /tmp/pakt/filename, but rather only filename.
 	f=$(basename "$f")
-	# This will make sure, that there are no error messages about a categoryfile not existing
+	# This will make sure, that there are no error messages about a category file not existing.
 	# These errors are not fatal, but the user should not see them!
 	touch "$PTH/$f"
 	for p in $(cat "/tmp/pakt/$f"); do
 		case $MODE in
 			S) # Add Package
-				# Check if Package is already in file, then dont add it
+				# Check if package is already in file, then don't add it.
 				if [ "$p" != "$(grep "^$p\$" "$PTH/$f")" ]; then
 					echo "$p" >> "$PTH/$f"
 				fi
 				;;
 			R) # Remove Package
-				sed -n "/^$p\$/"'!'"p" "$PTH/$f" | tee "$PTH/$f" > /dev/null # You cant pipe directly into PTH/f bc the pipe is opened first, therefor the file is beeing cleared, therefor sed opens a empty file
+				sed -n "/^$p\$/"'!'"p" "$PTH/$f" | tee "$PTH/$f" > /dev/null # You can't pipe directly into PTH/f bc the pipe is opened first, therefore the file is beeing cleared, therefore sed opens a empty file.
 				;;
 		esac
 	done
 done
 
-# At last we want to clean up, so we dont work on the packages from last time
+# At last we want to clean up, so we don't work on the packages from last time.
 rm /tmp/pakt -r
