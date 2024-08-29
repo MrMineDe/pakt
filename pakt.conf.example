@@ -1,31 +1,22 @@
 # This is the example config file for pakt.
 # The config is a pure shell script that gets directly sourced into the program.
-# Therefore, you should be cautious that, for example, the CMD variable is correct
-# as pakt will try to run the command with sudo!
+# Therefore, you should make sure that you get the variables correct as pakt will try to run the command with sudo!
 # If you want to be extra cautious, make it read-only for normal users.
 # Also be warned about the possibilities of defining PAKT_CONFIG_PATH
 
-# This defines the default categories, that are always included when running pakt.
-# Currently there is no way to exclude these categories by invoking some kind of flag when running pakt.
+# This defines the default categories that are always included when running pakt.
 DEFAULT_CATEGORIES="default"
 
-# The package manager you want to use.
-# Currently pacman and AUR helper that accept the same syntax as pacman are supported (e.g. yay or paru but not aura).
-# However, if you want to save AUR packages, you should invoke the packages with aur/packagename
-PACKAGE_MANAGER="pacman"
+# Pacman or an AUR helper that you want to use.
+# If you want to use a tool that is normally invoked with sudo (or doas), include it here.
+PACKAGE_MANAGER="sudo pacman"
 
-# The path where the packagefiles will be stored.
-# Default is XDG_DATA_HOME/pakt or .local/share/pakt if XDG is undefined
+# The path where the package files will be stored.
+# The default is $XDG_DATA_HOME/pakt or .local/share/pakt if XDG is undefined.
 if [ -z $XDG_DATA_HOME ]; then
-	PAKT_PATH="$HOME/.local/share/pakt"
-else
-	PAKT_PATH="$XDG_DATA_HOME/pakt"
+	XDG_DATA_HOME=$HOME/.local/share
 fi
-
-# Default mode to run the package manager in.
-# By default it's undefined, but possible entries are 'R', 'S' as used in pacman for Remove and Sync/Install
-# TODO WHAT + ARGUE setting S as default
-MODE=""
+PAKT_PATH="$XDG_DATA_HOME/pakt"
 
 # Also if you want to change the location of this config file:
-# export PAKT_CONFIG_PATH to the directory (e.g. /home/user/.config/pakt/pakt.conf) with a absolute path
+# Export PAKT_CONF_PATH to the directory (e.g. /home/user/.config/pakt) with an absolute path (without / at the end).
