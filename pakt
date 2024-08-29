@@ -50,7 +50,7 @@ fi
 if [ -e "$CONF_PATH" ]; then
 	. "$CONF_PATH"
 else
-	echo "WARNING: Could not load config file! Loading default config at /etc/pakt.conf.default
+	echo "WARNING: Could not load config file! Loading default config at /etc/pakt.conf.default"
 	. /etc/pakt.conf.default
 fi
 
@@ -142,4 +142,4 @@ for f in /tmp/pakt/*; do
 done
 
 # At last we want to clean up, so we don't work on the packages from last time.
-rm /tmp/pakt -r
+rm "/tmp/pakt" -r

@@ -21,7 +21,7 @@ if [ -e "$CONF_PATH" ]; then
         . "$CONF_PATH"
 else
         echo "WARNING: Could not load config file! Loading default
-config at /etc/pakt.conf.default
+config at /etc/pakt.conf.default"
         . /etc/pakt.conf.default
 fi
 
