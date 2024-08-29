@@ -73,7 +73,6 @@ else
 fi
 
 PAC=""
-SYNC=0
 ARG_WAS_CAT=0
 
 # we need this dir in pkg_tempsave()
@@ -91,10 +90,6 @@ for A in "$@"; do
 				*R*)
 					MODE="R"
 					CMD="${CMD} ${A}"
-				;;
-				# TODO refactor this to a seperate script
-				"-ABC")
-					SYNC=1
 				;;
 				*)
 					CMD="${CMD} ${A}"

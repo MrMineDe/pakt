@@ -67,6 +67,8 @@ for A in "$@"; do
 			exit
 		;;
 		"+"*)
+			# This allows the syntax of: +cat1,cat2,test,cli
+			A=$(echo "$A" | tr ',' ' ')
 			CAT="${CAT} ${A#+}"
 		;;
 		*)
@@ -79,7 +81,6 @@ done
 # Sync the packages
 PAC_DEL=$($MNL_PKG_CMD)
 PAC_BASE=$($ALL_PKG_CMD)
-echo PAC_BASE
 PAC_ADD=""
 # We want to combine all the categoriyfiles we got as parameter
 for c in $CAT; do
@@ -104,8 +105,6 @@ if [ -n "$PAC_ADD" ]; then
 	echo "Installing: $PAC_ADD"
 fi
 # Finally sync the packages
-# TODO Decide if sync should also do a full system upgrade.
-# This would also reduce the danger of partial upgrades/corrupt packages etc.
 if [ -n "$PAC_DEL" ]; then
 	if ! $CMD $CMD_ARG_UNINSTALL $PAC_DEL; then
 		echo "Pacman returned a fail. Exiting..."
