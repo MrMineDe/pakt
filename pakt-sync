@@ -30,28 +30,31 @@ else
 fi
 
 if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
+	CMD="sudo pacman"
 	CAT="default"
-	CMD="pacman"
 	if [ -z "$XDG_DATA_HOME" ]; then
 		PTH="$HOME/.local/share/pakt"
 	else
 		PTH="$XDG_DATA_HOME/pakt"
 	fi
+	ALL_PKG_CMD="pacman -Qq"
+	MNL_PKG_CMD="pacman -Qeq"
+	CMD_ARG_INSTALL="-Sy"
+	CMD_ARG_UNINSTALL="-Rs"
 else
-	# shorten the config variable names
+	## shorten the config variable names
 	CMD="$PACKAGE_MANAGER"
 	CAT="$DEFAULT_CATEGORIES"
 	PTH="$PAKT_PATH"
+	# All installed packages
+	ALL_PKG_CMD="$ALL_INSTALLED_PACKAGES_CMD"
+	# All by user installed packages (excluding dependencies)
+	MNL_PKG_CMD="$ALL_MANUAL_INSTALLED_PACKAGES_CMD"
+	# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
+	CMD_ARG_INSTALL="$PACKAGE_MANAGER_ARG_INSTALL"
+	CMD_ARG_UNINSTALL="$PACKAGE_MANAGER_ARG_UNINSTALL"
 fi
 
-ARG_WAS_CAT=0
-# All installed packages
-ALL_PKG_CMD="sudo pacman -Qq"
-# All by user installed packages (excluding dependencies)
-MNL_PKG_CMD="sudo pacman -Qeq"
-# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
-CMD_ARG_INSTALL="-Sy"
-CMD_ARG_UNINSTALL="-Rs"
 
 for A in "$@"; do
 	case "$A" in
@@ -76,6 +79,7 @@ done
 # Sync the packages
 PAC_DEL=$($MNL_PKG_CMD)
 PAC_BASE=$($ALL_PKG_CMD)
+echo PAC_BASE
 PAC_ADD=""
 # We want to combine all the categoriyfiles we got as parameter
 for c in $CAT; do
