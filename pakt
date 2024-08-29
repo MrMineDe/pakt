@@ -102,6 +102,8 @@ for A in "$@"; do
 			esac
 		;;
 		"+"*)
+			# This allows the syntax of: +cat1,cat2,test,cli
+			A=$(echo "$A" | tr ',' ' ')
 			CAT="${CAT} ${A#+}"
 			# ARG_WAS_CAT is used to detect, when a package is declared after a category.
 			# When that happens we want to first save the packages before to the categories before and then reset both.
@@ -140,7 +142,6 @@ for f in /tmp/pakt/*; do
 	# This will make sure, that there are no error messages about a categoryfile not existing
 	# These errors are not fatal, but the user should not see them!
 	touch "$PTH/$f"
-	cat "/tmp/pakt/$f"
 	for p in $(cat "/tmp/pakt/$f"); do
 		case $MODE in
 			S) # Add Package
