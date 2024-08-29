@@ -3,6 +3,23 @@
 # maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
 stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
 
+# save all the packages for a group of categories temporarily in /tmp
+# This is needed, because we allow different categories for different packages
+# We could do this with an array of some sort, but would lose POSIX-compliancy
+pkg_tempsave() {
+	for c in $(echo $CAT | tr ' ' '\n'); do
+		for p in "$PAC"; do
+			echo "CAT:$c"
+			echo "PKG:$p"
+			echo $p >> /tmp/pakt/$c
+		done
+	done
+	echo test
+
+	PAC=""
+	CAT="$DEFAULT_CATEGORIES"
+}
+
 # TODO DECIDE if we want a short flag like -h and overwrite the pacman flag
 if [ "$#" -eq 0 ] || [ "$1" = "--pakt-help" ]; then
 	echo "Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
@@ -63,6 +80,10 @@ fi
 
 PAC=""
 SYNC=0
+ARG_WAS_CAT=0
+
+# we need this dir in pkg_tempsave()
+mkdir -p /tmp/pakt
 
 # This is used, to save the state of -C argument, to store the ARG after -C
 DASH_C_TRUE=0
@@ -77,46 +98,55 @@ for A in "$@"; do
 			case "$A" in
 				*S*)
 					MODE="S"
-					ARG="${ARG} ${A}" #${!i}"
+					CMD="${CMD} ${A}"
 				;;
 				*R*)
 					MODE="R"
-					ARG="${ARG} ${A}"
+					CMD="${CMD} ${A}"
 				;;
-				# TODO Add -Q capability
-				"-C")
-					# We want to store the argument after -C, so we set a variable that will store the next element and then skip to the next word
-					DASH_C_TRUE=1
-				;;
-				# TODO change this to smth, that resembles sync, but is not taken by pacman
+				# TODO refactor this to a seperate script
 				"-ABC")
 					SYNC=1
 				;;
 				*)
-					ARG="${ARG} ${A}"
+					CMD="${CMD} ${A}"
 				;;
 			esac
 		;;
+		"+"*)
+			CAT="${CAT} ${A#+}"
+			# ARG_WAS_CAT is used to detect, when a package is declared after a category.
+			# When that happens we want to first save the packages before to the categories before and then reset both.
+			ARG_WAS_CAT=1
+		;;
 		*)
-			# TODO is there anything that is not started with - but still no package?
+			if [ $ARG_WAS_CAT -eq 1 ]; then
+				pkg_tempsave
+				ARG_WAS_CAT=0
+			fi
+			CMD="${CMD} ${A}"
 			PAC="${PAC} ${A}"
 		;;
 	esac
-	i="$((i+1))"
 done
+
 # If -C is the last argument, throw an error!
 if [ "$DASH_C_TRUE" -eq 1 ]; then
-	echo "Syntax: -C ARG ; -C needs one argument! See pakt -h for more info"
+	echo "Syntax: -C ARG ; -C needs one argument! See pakt --pakt-help for more info"
 	exit
 fi
 
+# Also save the last packages
+pkg_tempsave
+
 # Execute pacman
 if [ $SYNC -eq 0 ]; then
-	if ! sudo $CMD $ARG $PAC; then
+	if ! $CMD ; then
 		echo "Pacman returned a fail. Exiting..."
 		exit
 	fi
-else # -s, sync the packages
+# NOTE: This is broken by this commit. But we want to move this to a seperate script anyway, so idc
+else # -ABC, sync the packages
 	PAC_DEL=$(sudo $CMD -Qeq)
 	PAC_BASE=$(sudo $CMD -Qq)
 	PAC_ADD=""
@@ -135,7 +165,6 @@ else # -s, sync the packages
 	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
 	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
 	# We want to install/remove all the packages specified in the command as well
-	# TODO This does not work as intended atm
 	if [ -n "$PAC" ] && [ "$MODE" = "S" ]; then
 		PAC_ADD="${PAC_ADD} ${PAC}"
 	fi
@@ -174,13 +203,21 @@ else # -s, sync the packages
 	fi
 fi
 
+# Check if a Mode we care about was used. Otherwise the package manager was propably used to perform some other non-installing/removing action we dont care about
+if [ -z $MODE ]; then
+	exit;
+fi
+
 # Create path if it doesnt exist
 mkdir -p "$PTH"
-for f in $CAT; do
+for f in /tmp/pakt/*; do
+	# we dont want f to be /tmp/pakt/filename, but rather only filename
+	f=$(basename $f)
 	# This will make sure, that there are no error messages about a categoryfile not existing
 	# These errors are not fatal, but the user should not see them!
 	touch "$PTH/$f"
-	for p in $PAC; do
+	cat "/tmp/pakt/$f"
+	for p in $(cat /tmp/pakt/$f); do
 		case $MODE in
 			S) # Add Package
 				# Check if Package is already in file, then dont add it
@@ -194,3 +231,6 @@ for f in $CAT; do
 		esac
 	done
 done
+
+# At last we want to clean up, so we dont work on the packages from last time
+rm /tmp/pakt -r
