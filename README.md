@@ -30,5 +30,10 @@ rustup
 ## Installation
 Move `pakt.sh` to a PATH directory, e.g. `$HOME/.local/bin/`.
 
+## Configuration
+You can configure quite a bit of pakt directly in the config file.
+For the exact options and how to use them have a look at the [sample config file.](https://github.com/MrMineDe/pakt/blob/main/pakt.conf.example)
+It should be noted, that you should always include all options provided by the sample config in your config, as otherwise the program will break! See #32
+
 ## TODO
 See the [todo project](https://github.com/users/MrMineDe/projects/1) and the respective issues
