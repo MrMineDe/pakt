@@ -9,52 +9,33 @@ if [ "$1" = "--pakt-help" ] || [ "$1" = "-h" ]; then
 	exit
 fi
 
-# Source the config file
-# TODO DECIDE if there is no config, we should copy the default config as configfile and load that instead of defining it here
-# Define the location where we search for the config file
-ACTIVATE_DEF_CONF=0
+# Source the config file.
 if [ -z "$PAKT_CONFIG_PATH" ]; then
-	if [ -z "$XDG_CONFIG_HOME" ]; then
-		CONF_PATH="$XDG_CONFIG_HOME/pakt/pakt.conf"
-	else
-		CONF_PATH="$HOME/.config/pakt/pakt.conf"
-	fi
+        CONF_PATH="/etc/pakt.conf"
 else
-	CONF_PATH="$PAKT_CONFIG_PATH"
+        CONF_PATH="$PAKT_CONFIG_PATH"
 fi
-# Now check if config file is there and load it
+
+# Now check if config file is there and load it.
 if [ -e "$CONF_PATH" ]; then
-	. "$CONF_PATH"
+        . "$CONF_PATH"
 else
-	ACTIVATE_DEF_CONF=1
+        echo "WARNING: Could not load config file! Loading default
+config at /etc/pakt.conf.default
+        . /etc/pakt.conf.default
 fi
 
-if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
-	CMD="sudo pacman"
-	CAT="default"
-	if [ -z "$XDG_DATA_HOME" ]; then
-		PTH="$HOME/.local/share/pakt"
-	else
-		PTH="$XDG_DATA_HOME/pakt"
-	fi
-	ALL_PKG_CMD="pacman -Qq"
-	MNL_PKG_CMD="pacman -Qeq"
-	CMD_ARG_INSTALL="-Sy"
-	CMD_ARG_UNINSTALL="-Rs"
-else
-	## shorten the config variable names
-	CMD="$PACKAGE_MANAGER"
-	CAT="$DEFAULT_CATEGORIES"
-	PTH="$PAKT_PATH"
-	# All installed packages
-	ALL_PKG_CMD="$ALL_INSTALLED_PACKAGES_CMD"
-	# All by user installed packages (excluding dependencies)
-	MNL_PKG_CMD="$ALL_MANUAL_INSTALLED_PACKAGES_CMD"
-	# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
-	CMD_ARG_INSTALL="$PACKAGE_MANAGER_ARG_INSTALL"
-	CMD_ARG_UNINSTALL="$PACKAGE_MANAGER_ARG_UNINSTALL"
-fi
-
+# shorten the config variable names
+CMD="$PACKAGE_MANAGER"
+CAT="$DEFAULT_CATEGORIES"
+PTH="$PAKT_PATH"
+# All installed packages
+ALL_PKG_CMD="$ALL_INSTALLED_PACKAGES_CMD"
+# All by user installed packages (excluding dependencies)
+MNL_PKG_CMD="$ALL_MANUAL_INSTALLED_PACKAGES_CMD"
+# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
+CMD_ARG_INSTALL="$PACKAGE_MANAGER_ARG_INSTALL"
+CMD_ARG_UNINSTALL="$PACKAGE_MANAGER_ARG_UNINSTALL"
 
 for A in "$@"; do
 	case "$A" in

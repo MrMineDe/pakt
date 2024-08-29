@@ -40,15 +40,8 @@ Examples:
 fi
 
 # Source the config file.
-# Define the location where we search for the config file.
-# TODO LOCAL ARGUE keep either CONF_PATH variable
-ACTIVATE_DEF_CONF=0
 if [ -z "$PAKT_CONFIG_PATH" ]; then
-	if [ -z "$XDG_CONFIG_HOME" ]; then
-		CONF_PATH="$XDG_CONFIG_HOME/pakt/pakt.conf"
-	else
-		CONF_PATH="$HOME/.config/pakt/pakt.conf"
-	fi
+	CONF_PATH="/etc/pakt.conf"
 else
 	CONF_PATH="$PAKT_CONFIG_PATH"
 fi
@@ -57,24 +50,14 @@ fi
 if [ -e "$CONF_PATH" ]; then
 	. "$CONF_PATH"
 else
-	ACTIVATE_DEF_CONF=1
+	echo "WARNING: Could not load config file! Loading default config at /etc/pakt.conf.default
+	. /etc/pakt.conf.default
 fi
 
-if [ $ACTIVATE_DEF_CONF -eq 1 ]; then
-	CAT="default"
-	CMD="pacman"
-	if [ -z "$XDG_DATA_HOME" ]; then
-		PTH="$HOME/.local/share/pakt"
-	else
-		PTH="$XDG_DATA_HOME/pakt"
-	fi
-	MODE=""
-else
-	# shorten the config variable names
-	CMD="$PACKAGE_MANAGER"
-	CAT="$DEFAULT_CATEGORIES"
-	PTH="$PAKT_PATH"
-fi
+# shorten the config variable names
+CMD="$PACKAGE_MANAGER"
+CAT="$DEFAULT_CATEGORIES"
+PTH="$PAKT_PATH"
 
 PAC=""
 ARG_WAS_CAT=0
