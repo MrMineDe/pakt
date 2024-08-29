@@ -7,14 +7,11 @@ stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
 # This is needed, because we allow different categories for different packages
 # We could do this with an array of some sort, but would lose POSIX-compliancy
 pkg_tempsave() {
-	for c in $(echo $CAT | tr ' ' '\n'); do
-		for p in "$PAC"; do
-			echo "CAT:$c"
-			echo "PKG:$p"
-			echo $p >> /tmp/pakt/$c
+	for c in $(echo "$CAT" | tr ' ' '\n'); do
+		for p in $PAC; do
+			echo "$p" >> /tmp/pakt/"$c"
 		done
 	done
-	echo test
 
 	PAC=""
 	CAT="$DEFAULT_CATEGORIES"
@@ -204,7 +201,7 @@ else # -ABC, sync the packages
 fi
 
 # Check if a Mode we care about was used. Otherwise the package manager was propably used to perform some other non-installing/removing action we dont care about
-if [ -z $MODE ]; then
+if [ -z "$MODE" ]; then
 	exit;
 fi
 
@@ -212,12 +209,12 @@ fi
 mkdir -p "$PTH"
 for f in /tmp/pakt/*; do
 	# we dont want f to be /tmp/pakt/filename, but rather only filename
-	f=$(basename $f)
+	f=$(basename "$f")
 	# This will make sure, that there are no error messages about a categoryfile not existing
 	# These errors are not fatal, but the user should not see them!
 	touch "$PTH/$f"
 	cat "/tmp/pakt/$f"
-	for p in $(cat /tmp/pakt/$f); do
+	for p in $(cat "/tmp/pakt/$f"); do
 		case $MODE in
 			S) # Add Package
 				# Check if Package is already in file, then dont add it
