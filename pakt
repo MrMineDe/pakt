@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
-# TODO VERSION GPL-2.0
+# v0.0.1 GPL-2.0
 # https://github.com/mrminede/pakt
 
 # Save all the packages for a group of categories temporarily in /tmp.
@@ -17,26 +17,9 @@ pkg_tempsave() {
 	CAT="$DEFAULT_CATEGORIES"
 }
 
-if [ "$#" -eq 0 ] || [ "$1" = "--pakt-help" ]; then
-	echo "Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
-
-Usage: pakt (pacman/aur helper flags) package ... [+category] ...
-    # TODO change help flag here
-    or pakt --help
-    or pakt -h
-
-Examples:
-    # Just use pakt as a pacman/AUR helper wrapper
-    pakt -S neovim
-
-    # Installs neovim and assigns it to the \"editors\" category
-    pakt -S neovim +editors
-
-    # Performs system update, installs htop and lf both in the \"cli\" category,
-    # firefox in \"basic\" but git in none
-    pakt -Syu htop lf +cli firefox +basic git"
-
-	exit
+if [ "$1" = "--help" ]; then
+	echo "PAKT: Displaying your package manager's help message.
+If you wanted to see pakt, see the manpage at \`man pakt\`"
 fi
 
 # Source the config file.
@@ -46,7 +29,7 @@ else
 	CONF_PATH="$PAKT_CONFIG_PATH"
 fi
 
-# Now check if config file is there and load it.
+# Now check if the config file is there and load it.
 if [ -e "$CONF_PATH" ]; then
 	. "$CONF_PATH"
 else
