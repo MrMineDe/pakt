@@ -2,7 +2,7 @@
 # The config is a pure shell script that gets directly sourced into the program.
 # Therefore, you should make sure that you get the variables correct as pakt will try to run the command with sudo!
 # If you want to be extra cautious, make it read-only for normal users.
-# Also be warned about the possibilities of defining PAKT_CONFIG_PATH
+# Also be warned about the possibilities of defining PAKT_CONF_PATH
 
 # This defines the default categories that are always included when running pakt.
 DEFAULT_CATEGORIES="default"
@@ -23,13 +23,6 @@ ALL_INSTALLED_PACKAGES_CMD="$PACKAGE_MANAGER -Qq"
 
 # Command to get all packages manually installed by the user (basically excluding all dependencies)
 ALL_MANUAL_INSTALLED_PACKAGES_CMD="$PACKAGE_MANAGER -Qeq"
-
-# The path where the package files will be stored.
-# The default is $XDG_DATA_HOME/pakt or .local/share/pakt if XDG is undefined.
-if [ -z $XDG_DATA_HOME ]; then
-	XDG_DATA_HOME=$HOME/.local/share
-fi
-PAKT_PATH="$XDG_DATA_HOME/pakt"
 
 # Also if you want to change the location of this config file:
 # Export PAKT_CONF_PATH to the directory (e.g. /home/user/.config/pakt) with an absolute path (without / at the end).

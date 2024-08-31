@@ -8,121 +8,114 @@
 # We could do this with an array of some sort, but would lose POSIX-compliancy.
 pkg_tempsave() {
 	for c in $(echo "$CAT" | tr ' ' '\n'); do
-		for p in $PAC; do
+		for p in $PKGS; do
 			echo "$p" >> /tmp/pakt/"$c"
 		done
 	done
 
-	PAC=""
+	PKGS=""
 	CAT="$DEFAULT_CATEGORIES"
 }
 
-if [ "$1" = "--help" ]; then
-	echo "PAKT: Displaying your package manager's help message.
-If you wanted to see pakt, see the manpage at \`man pakt\`"
-fi
+# Strict mode. The script will throw an error on an unbound variable encounter.
+set -u
 
-# Source the config file.
-if [ -z "$PAKT_CONFIG_PATH" ]; then
-	CONF_PATH="/etc/pakt.conf"
-else
-	CONF_PATH="$PAKT_CONFIG_PATH"
-fi
-
-# Now check if the config file is there and load it.
-if [ -e "$CONF_PATH" ]; then
-	. "$CONF_PATH"
-else
-	echo "WARNING: Could not load config file! Loading default config at /etc/pakt.conf.default"
-	. /etc/pakt.conf.default
-fi
-
-# shorten the config variable names
-CMD="$PACKAGE_MANAGER"
-CAT="$DEFAULT_CATEGORIES"
-PTH="$PAKT_PATH"
-
-PAC=""
-ARG_WAS_CAT=0
-
-# We need this dir in pkg_tempsave().
+# Temporary path storing new package and category data.
 mkdir -p /tmp/pakt
 
-# TODO LOCAL ASK "-C"?
-# This is used to save the state of -C argument, to store the ARG after -C.
-for A in "$@"; do
-	case "$A" in
+# Check whether the data path was defined with XDG.
+if [ -z "${XDG_DATA_HOME:-}" ]; then
+	DATA_PATH="$HOME/.local/share/pakt"
+else
+	DATA_PATH="$XDG_DATA_HOME/pakt"
+fi
+mkdir -p "$DATA_PATH"
+
+# Control/set config path variable.
+if [ -z "${PAKT_CONF_PATH:-}" ]; then
+	PAKT_CONF_PATH="/etc/pakt.conf"
+fi
+
+# Create new pakt.conf if none exists.
+if [ ! -e "$PAKT_CONF_PATH" ]; then
+	echo "PAKT: ERROR: /etc/pakt.conf not found."
+	exit 1
+fi
+
+. "$PAKT_CONF_PATH"
+
+# Process variables
+CMD="$PACKAGE_MANAGER"
+CAT="$DEFAULT_CATEGORIES"
+
+PKGS=""
+TRANSACTION_READY=1
+
+# Help message part.
+if [ "${1:-}" = "--help" ]; then
+	echo "PAKT: Displaying your package manager's help message.
+If you wanted to see pakt, see the manpage at \`man pakt\`
+"
+fi
+
+for arg in "$@"; do
+	case "$arg" in
 		-*)
-			# TODO LOCAL ARGUE can you merge both case-ins?
-			case "$A" in
-				*S*)
-					MODE="S"
-					CMD="${CMD} ${A}"
-				;;
-				*R*)
-					MODE="R"
-					CMD="${CMD} ${A}"
-				;;
-				*)
-					CMD="${CMD} ${A}"
-				;;
-			esac
-		;;
+			CMD="${CMD} ${arg}"
+			;;
 		"+"*)
-			# This allows the syntax of: +cat1,cat2,test,cli
-			A=$(echo "$A" | tr ',' ' ')
-			CAT="${CAT} ${A#+}"
-			# ARG_WAS_CAT is used to detect, when a package is declared after a category.
-			# When that happens we want to first save the packages before to the categories before and then reset both.
-			ARG_WAS_CAT=1
-		;;
+			# Split up comma-separated categories (+cat1,cat2,test,cli).
+			arg=$(echo "$arg" | tr ',' ' ')
+			CAT="${CAT} ${arg#+}"
+
+			# This is used to detect, when a package is declared after a category.
+			# When that happens we want to first save the package and categoriy data before resetting both.
+			TRANSACTION_READY=0
+			;;
 		*)
-			if [ $ARG_WAS_CAT -eq 1 ]; then
+			# See comment above.
+			if [ $TRANSACTION_READY -eq 0 ]; then
 				pkg_tempsave
-				ARG_WAS_CAT=0
+				TRANSACTION_READY=1
 			fi
-			CMD="${CMD} ${A}"
-			PAC="${PAC} ${A}"
-		;;
+
+			CMD="${CMD} ${arg}"
+			PKGS="${PKGS} ${arg}"
+			;;
 	esac
 done
 
-# Save the last packages
+# Save the last packages.
 pkg_tempsave
 
-# Execute pacman
+# Execute pacman.
 if ! $CMD ; then
-	echo "Pacman returned a fail. Exiting..."
-	exit
+	echo "PAKT: ERROR: Package manager returned a fail. Exiting..."
+	exit 1
 fi
 
-# Check if a mode we care about was used. Otherwise the package manager was probably used to perform some other non-installing/removing action we don't care about.
-if [ -z "$MODE" ]; then
-	exit;
+# Introduce the REMOVE_MODE variable if we're dealing with a remove transaction.
+# We don't just check the second/third argument for '-R' because, apparently, you can place the flag anywhere.
+# `sudo pacman neovim htop -Rns` is legal. :skull:
+if echo "$CMD" | grep -q "\-R"; then
+	REMOVE_MODE=""
 fi
 
-# Create path if it doesn't exist
-mkdir -p "$PTH"
-for f in /tmp/pakt/*; do
-	# We don't want f to be /tmp/pakt/filename, but rather only filename.
-	f=$(basename "$f")
-	# This will make sure, that there are no error messages about a category file not existing.
-	# These errors are not fatal, but the user should not see them!
-	touch "$PTH/$f"
-	for p in $(cat "/tmp/pakt/$f"); do
-		case $MODE in
-			S) # Add Package
-				# Check if package is already in file, then don't add it.
-				if [ "$p" != "$(grep "^$p\$" "$PTH/$f")" ]; then
-					echo "$p" >> "$PTH/$f"
-				fi
-				;;
-			R) # Remove Package
-				sed -n "/^$p\$/"'!'"p" "$PTH/$f" | tee "$PTH/$f" > /dev/null # You can't pipe directly into PTH/f bc the pipe is opened first, therefore the file is beeing cleared, therefore sed opens a empty file.
-				;;
-		esac
+for tmpfile in /tmp/pakt/*; do
+	catfile=$DATA_PATH/`basename $tmpfile`
+	touch $catfile
+
+	for pkg in $(cat "$tmpfile"); do
+		if [ -e "${REMOVE_MODE:-}" ]; then
+			# Remove package from category file.
+			# You can't pipe directly into tmpfile because it would encounter an empty file.
+			sed -n "/^$pkg\$/"'!'"p" "$catfile" | tee "$catfile" > /dev/null
+		elif [ "$pkg" != "$(grep "^$pkg\$" "$catfile")" ]; then
+			# Add package to category file, if not already there.
+			echo "$pkg" >> "$catfile"
+		fi
 	done
 done
 
 # At last we want to clean up, so we don't work on the packages from last time.
-rm "/tmp/pakt" -r
+rm -r "/tmp/pakt"
