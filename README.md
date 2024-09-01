@@ -58,5 +58,12 @@ cd path/to/pakt
 sudo sh uninstall.sh
 ```
 
+## Configuration
+The configuration is usually done in `/etc/pakt.conf`. By exporting a `PAKT_CONF_PATH` in your shell config (e.g. `~/.bashrc`), you can determine another path for this file.
+
+In the file, you can choose an AUR helper for Pakt to wrap around, or just keep Pacman.
+
+You can also assign multiple categories that package names go into by default. Out of the box, it's just `default`. But you can also set none.
+
 ## TODO
 See the [todo project](https://github.com/users/MrMineDe/projects/1) and the respective issues
