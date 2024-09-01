@@ -2,8 +2,9 @@
 
 echo "Uninstalling pakt ..."
 
-echo "Removing executable at /usr/bin/pakt ..."
+echo "Removing executables at /usr/bin/pakt and /usr/bin/pakt-sync ..."
 rm /usr/bin/pakt
+rm /usr/bin/pakt-sync
 
 echo "Removing man pages ..."
 rm /usr/share/man/man1/pakt.1.gz
