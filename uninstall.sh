@@ -13,7 +13,7 @@ echo "Removing default config at /etc/pacman.conf.example ..."
 rm /etc/pakt.conf.default
 
 while true; do
-	reap -p "Do you want to remove your config at /etc/pakt.conf? [Y/n]" response
+	read -p "Do you want to remove your config at /etc/pakt.conf? [Y/n] " response
 
 	case "$response" in
 		[Yy]|[Yy][Ee][Ss]|"")
