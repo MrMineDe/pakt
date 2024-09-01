@@ -6,8 +6,8 @@ echo "Removing executable at /usr/bin/pakt ..."
 rm /usr/bin/pakt
 
 echo "Removing man pages ..."
-rm /usr/share/man/man1/pakt.1
-rm /usr/share/man/man1/pakt-sync.1
+rm /usr/share/man/man1/pakt.1.gz
+rm /usr/share/man/man1/pakt-sync.1.gz
 
 echo "Removing default config at /etc/pacman.conf.example ..."
 rm /etc/pakt.conf.default
