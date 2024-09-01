@@ -9,13 +9,8 @@ echo "Installing the man pages ..."
 install -m 644 pakt.1 /usr/share/man/man1/pakt.1
 install -m 644 pakt-sync.1 /usr/share/man/man1/pakt-sync.1
 
-echo "Creating config directory at ~/.config/pakt ..."
-mkdir -p $HOME/.config/pakt/categories
-
-echo "Putting default config at /etc/pacman.conf.example ..."
-install -m 644 pakt.conf.example /etc/pakt.conf.example
-
-echo "Creating config file at ~/.config/pakt/pakt.conf ..."
-cp pakt.conf.example $HOME/.config/pakt/pakt.conf
+echo "Putting default config at /etc/pacman.conf.default ..."
+install -m 644 pakt.conf.default /etc/pakt.conf.default
+cp /etc/pakt.conf.default /etc/pakt.conf
 
 echo "Installation complete :)"

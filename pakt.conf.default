@@ -2,7 +2,7 @@
 # The config is a pure shell script that gets directly sourced into the program.
 # Therefore, you should make sure that you get the variables correct as pakt will try to run the command with sudo!
 # If you want to be extra cautious, make it read-only for normal users.
-# Also be warned about the possibilities of defining PAKT_CONF_PATH
+# Also be warned about the possibilities of defining PAKT_CONF_PATH.
 
 # This defines the default categories that are always included when running pakt.
 DEFAULT_CATEGORIES="default"
@@ -10,19 +10,6 @@ DEFAULT_CATEGORIES="default"
 # Pacman or an AUR helper that you want to use. Also some other options of it.
 # If you want to use a tool that is normally invoked with sudo (or doas), include it here.
 PACKAGE_MANAGER="sudo pacman"
-
-# The argument needed to install packages, Syntax: $PACKAGE_MANAGER $PACKAGE_MANAGER_ARG_INSTALL PACKAGES
-# Here you could also define, that when we install packages we should also do a full system upgrade
-PACKAGE_MANAGER_ARG_INSTALL="-Sy"
-
-# The argument needed to uninstall packages, Syntax: $PACKAGE_MANAGER $PACKAGE_MANAGER_ARG_UNINSTALL PACKAGES
-PACKAGE_MANAGER_ARG_UNINSTALL="-Rs"
-
-# Command to get all installed packages
-ALL_INSTALLED_PACKAGES_CMD="$PACKAGE_MANAGER -Qq"
-
-# Command to get all packages manually installed by the user (basically excluding all dependencies)
-ALL_MANUAL_INSTALLED_PACKAGES_CMD="$PACKAGE_MANAGER -Qeq"
 
 # Also if you want to change the location of this config file:
 # Export PAKT_CONF_PATH to the directory (e.g. /home/user/.config/pakt) with an absolute path (without / at the end).
