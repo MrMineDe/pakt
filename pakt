@@ -94,6 +94,11 @@ if ! $CMD ; then
 	exit 1
 fi
 
+# Omits the rest of the script if no category tomfoolery was performed.
+if [ ! "$(ls /tmp/pakt)" ]; then
+	exit
+fi
+
 # Introduce the REMOVE_MODE variable if we're dealing with a remove transaction.
 # We don't just check the second/third argument for '-R' because, apparently, you can place the flag anywhere.
 # `sudo pacman neovim htop -Rns` is legal. :skull:
