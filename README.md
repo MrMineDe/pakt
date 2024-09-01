@@ -1,5 +1,5 @@
 # Pakt
-Pakt (PAcman KaTegories) is a Pacman shell wrapper for categorizing packages.
+Pakt (PAcman KaTegories) is a POSIX-compliant Pacman shell wrapper for categorizing packages.
 
 ## What are categories?
 You can order the packages you install in categories. They are stored in plain text files at `$XDG_DATA_HOME/pakt/`, like this:
@@ -13,27 +13,50 @@ clang
 rustup
 ```
 
-## Syntax
-| Example                       | Description                                                 |
-| ---                           | ---                                                         |
-| pakt -S neovim                | Pakt can act as a replacement of pacman|
-| pakt -S aur/neovim-git	| but can also be configured as a wrapper for aur helpers like yay|
-| pakt -S firefox -C gui -C all | installs Firefox and assigns the categories `gui` and `all` |
-| pakt -Rns vim -C editors      | Uninstalls vim and removes it from the `editors` category   |
-| pakt -f gui                   | Sync all packages listed in `$HOME/.local/share/pakt/gui`   |
+## Examples
+```
+# pakt can act as a replacement of pacman ...
+pakt -S neovim
 
-## Usecases
+# ... and as a wrapper for your AUR helper
+pakt -S neovim-git
+
+# Installs neovim and assigns the `editors` category
+pakt -S neovim +editors
+
+# Installs firefox and assigns the categories `gui` and `all`
+pakt -S firefox +gui +all
+
+# Performs system update, installs htop and lf both in `cli`,
+# firefox in `basic` but git only in the default categories (if any configured)
+pakt -Syu htop lf +cli firefox +basic git
+```
+
+## Use cases
 - Don't keep unused packages on your system by having an overview.
 - Set up your system by installing your packages from the category files (kinda like in NixOS).
 - Uninstall temporary packages (e.g. utilities for programming projects).
 
 ## Installation
-Move `pakt.sh` to a PATH directory, e.g. `$HOME/.local/bin/`.
+```
+git clone https://github.com/mrminede/pakt
+cd pakt
+sudo sh install.sh
+```
 
-## Configuration
-You can configure quite a bit of pakt directly in the config file.
-For the exact options and how to use them have a look at the [sample config file.](https://github.com/MrMineDe/pakt/blob/main/pakt.conf.example)
-It should be noted, that you should always include all options provided by the sample config in your config, as otherwise the program will break! See [#32](https://github.com/MrMineDe/pakt/issues/32)
+When you're done, you can remove the source code directory.
+
+## Uninstallation
+```
+curl -LsS https://raw.githubusercontent.com/mrminede/pakt/main/uninstall.sh | sudo sh
+```
+
+Or if you still have the source code directory:
+
+```
+cd path/to/pakt
+sudo sh uninstall.sh
+```
 
 ## TODO
 See the [todo project](https://github.com/users/MrMineDe/projects/1) and the respective issues
