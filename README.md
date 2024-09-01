@@ -5,8 +5,7 @@ Pakt (PAcman KaTegories) is a POSIX-compliant Pacman shell wrapper for categoriz
 You can order the packages you install in categories. They are stored in plain text files at `$XDG_DATA_HOME/pakt/`, like this:
 
 ```
-$HOME/.local/share/pakt/dev
----------------------------
+> cat ~/.local/share/pakt/dev
 emacs
 typescript
 clang
