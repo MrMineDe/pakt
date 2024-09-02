@@ -3,13 +3,21 @@
 # v0.0.1 GPL-2.0
 # https://github.com/mrminede/pakt
 
+if [ "$#" -eq 0 ]; then
+	echo "Cowardly refusing to supply arguments.
+Redirecting to the manpage ..."
+	sleep 3
+	eval "man pakt-dry"
+fi
+
 # Save all the packages for a group of categories temporarily in /tmp.
 # This is needed, because we allow different categories for different packages.
 # We could do this with an array of some sort, but would lose POSIX-compliancy.
+# TODO
 pkg_tempsave() {
 	for c in $(echo "$CATS" | tr ' ' '\n'); do
 		for p in $PKGS; do
-			echo "$p" >> /tmp/pakt/"$c"
+			echo "$p" >> /tmp/pakt-dry/"$c"
 		done
 	done
 
@@ -21,7 +29,7 @@ pkg_tempsave() {
 set -u
 
 # Temporary path storing new package and category data.
-mkdir -p /tmp/pakt
+mkdir -p /tmp/pakt-dry
 
 # Check whether the data path was defined with XDG.
 if [ -z "${XDG_DATA_HOME:-}" ]; then
@@ -45,23 +53,21 @@ fi
 . "$PAKT_CONF_PATH"
 
 # Process variables
-CMD="$PACKAGE_MANAGER"
 CATS="$DEFAULT_CATEGORIES"
 
 PKGS=""
 TRANSACTION_READY=1
 
-# Help message part.
+# Help message part. Shamelessly redirecting to the manpage.
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-	echo "PAKT: Displaying your package manager's help message.
-	If you wanted to see pakt, see the manpage at \`man pakt\`
-	"
+	eval "man pakt-dry"
+	exit
 fi
 
 for arg in "$@"; do
 	case "$arg" in
 		-*)
-			CMD="${CMD} ${arg}"
+			echo "TODO unhandled case"
 			;;
 		"+"*)
 			# Split up comma-separated categories (+cat1,cat2,test,cli).
@@ -79,7 +85,6 @@ for arg in "$@"; do
 				TRANSACTION_READY=1
 			fi
 
-			CMD="${CMD} ${arg}"
 			PKGS="${PKGS} ${arg}"
 			;;
 	esac
@@ -88,25 +93,13 @@ done
 # Save the last packages.
 pkg_tempsave
 
-# Execute pacman.
-if ! $CMD ; then
-	echo "PAKT: ERROR: Package manager returned a fail. Exiting..."
-	exit 1
-fi
-
+# TODO NOTE dont keep it if there is a special action for no arguments
 # Omits the rest of the script if no category tomfoolery was performed.
-if [ ! "$(ls /tmp/pakt)" ]; then
+if [ ! "$(ls /tmp/pakt-dry)" ]; then
 	exit
 fi
 
-# Introduce the REMOVE_MODE variable if we're dealing with a remove transaction.
-# We don't just check the second/third argument for '-R' because, apparently, you can place the flag anywhere.
-# `sudo pacman neovim htop -Rns` is legal. :skull:
-if echo "$CMD" | grep -q "\-R"; then
-	REMOVE_MODE=""
-fi
-
-for tmpfile in /tmp/pakt/*; do
+for tmpfile in /tmp/pakt-dry/*; do
 	catfile=$DATA_PATH/`basename $tmpfile`
 	touch $catfile
 
@@ -123,4 +116,4 @@ for tmpfile in /tmp/pakt/*; do
 done
 
 # At last we want to clean up, so we don't work on the packages from last time.
-rm -r "/tmp/pakt"
+rm -r "/tmp/pakt-dry"

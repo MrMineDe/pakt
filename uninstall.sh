@@ -2,12 +2,14 @@
 
 echo "Uninstalling pakt ..."
 
-echo "Removing executables at /usr/bin/pakt and /usr/bin/pakt-sync ..."
+echo "Removing executables at /usr/bin/pakt, /usr/bin/pakt-dry, /usr/bin/pakt-sync ..."
 rm /usr/bin/pakt
+rm /usr/bin/pakt-dry
 rm /usr/bin/pakt-sync
 
 echo "Removing man pages ..."
 rm /usr/share/man/man1/pakt.1.gz
+rm /usr/share/man/man1/pakt-dry.1.gz
 rm /usr/share/man/man1/pakt-sync.1.gz
 
 echo "Removing default config at /etc/pacman.conf.example ..."
