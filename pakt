@@ -7,9 +7,9 @@
 # This is needed, because we allow different categories for different packages.
 # We could do this with an array of some sort, but would lose POSIX-compliancy.
 pkg_tempsave() {
-	for c in $(echo "$CATS" | tr ' ' '\n'); do
-		for p in $PKGS; do
-			echo "$p" >> /tmp/pakt/"$c"
+	for cat in $(echo "$CATS" | tr ' ' '\n'); do
+		for pkg in $PKGS; do
+			echo "$pkg" >> /tmp/pakt/"$cat"
 		done
 	done
 
@@ -47,7 +47,6 @@ fi
 # Process variables
 CMD="$PACKAGE_MANAGER"
 CATS="$DEFAULT_CATEGORIES"
-
 PKGS=""
 TRANSACTION_READY=1
 
@@ -68,7 +67,7 @@ for arg in "$@"; do
 			arg=$(echo "$arg" | tr ',' ' ')
 			CATS="${CATS} ${arg#+}"
 
-			# This is used to detect, when a package is declared after a category.
+			# This is used to detect when a package is declared after a category.
 			# When that happens we want to first save the package and categoriy data before resetting both.
 			TRANSACTION_READY=0
 			;;
@@ -123,4 +122,4 @@ for tmpfile in /tmp/pakt/*; do
 done
 
 # At last we want to clean up, so we don't work on the packages from last time.
-rm -r "/tmp/pakt"
+rm -r /tmp/pakt
