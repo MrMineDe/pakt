@@ -68,12 +68,12 @@ for arg in "$@"; do
 			CATS="${CATS} ${arg#+}"
 
 			# This is used to detect when a package is declared after a category.
-			# When that happens we want to first save the package and categoriy data before resetting both.
+			# When that happens, we want to first save the package and category data before resetting both.
 			TRANSACTION_READY=0
 			;;
 		*)
 			# See comment above.
-			if [ $TRANSACTION_READY -eq 0 ]; then
+			if [ "$TRANSACTION_READY" -eq 0 ]; then
 				pkg_tempsave
 				TRANSACTION_READY=1
 			fi
@@ -98,22 +98,15 @@ if [ ! "$(ls /tmp/pakt)" ]; then
 	exit
 fi
 
-# Introduce the REMOVE_MODE variable if we're dealing with a remove transaction.
-# We don't just check the second/third argument for '-R' because, apparently, you can place the flag anywhere.
-# `sudo pacman neovim htop -Rns` is legal. :skull:
-if echo "$CMD" | grep -q "\-R"; then
-	REMOVE_MODE=""
-fi
-
 for tmpfile in /tmp/pakt/*; do
 	catfile=$DATA_PATH/`basename $tmpfile`
 	touch $catfile
 
 	for pkg in $(cat "$tmpfile"); do
-		if [ -e "${REMOVE_MODE:-}" ]; then
+		if echo "$CMD" | grep -q "\-R"; then
 			# Remove package from category file.
 			# You can't pipe directly into tmpfile because it would encounter an empty file.
-			sed -n "/^$pkg\$/"'!'"p" "$catfile" | tee "$catfile" > /dev/null
+			sed -i "/^$pkg$/d" "$catfile"
 		elif [ "$pkg" != "$(grep "^$pkg\$" "$catfile")" ]; then
 			# Add package to category file, if not already there.
 			echo "$pkg" >> "$catfile"

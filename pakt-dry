@@ -14,30 +14,9 @@ fi
 # Process variables
 FLAG=""
 REST=""
-CATS="$DEFAULT_CATEGORIES"
-TRANSACTION_READY=1
-
-# Save all the packages for a group of categories temporarily in /tmp.
-# This is needed, because we allow different categories for different packages.
-# We could do this with an array of some sort, but would lose POSIX-compliancy.
-# TODO
-pkg_tempsave() {
-	for c in $(echo "$CATS" | tr ' ' '\n'); do
-		for p in $PKGS; do
-			echo "$p" >> /tmp/pakt-dry/"$c"
-		done
-	done
-
-	PKGS=""
-	CATS="$DEFAULT_CATEGORIES"
-}
 
 # Strict mode. The script will throw an error on an unbound variable encounter.
 set -u
-
-# Temporary path storing new package and category data.
-# TODO
-mkdir -p /tmp/pakt-dry
 
 # Check whether the data path was defined with XDG.
 if [ -z "${XDG_DATA_HOME:-}" ]; then
@@ -74,37 +53,71 @@ for arg in "$@"; do
 	esac
 done
 
-case "$FLAG" in
-	"")
-		# TODO PLAN
-		# show pkgs for argument
-		# normal argument is a file path
-		for arg in $(echo "$REST" | tr ' ' '\n'); do
-			echo "TODO TEST catting $arg"
-			case "$arg" in
-				"+"*)
-					cat $DATA_PATH/${arg#+}
-					;;
-				*)
-					cat "$arg"
-					;;
-			esac
+if [ "$FLAG" = "" ]; then
+	for arg in $(echo "$REST" | tr ' ' '\n'); do
+		echo -e "$arg\n--------------------"
+		case "$arg" in
+			"+"*)
+				cat $DATA_PATH/${arg#+}
+				;;
+			*)
+				cat "$arg"
+				;;
+		esac
+		echo
+	done
+
+	exit
+fi
+
+# From this point on, pakt-dry applies the same logic as in pakt to (de-)categorize the packages.
+
+PKGS=""
+CATS="$DEFAULT_CATEGORIES"
+TRANSACTION_READY=1
+
+# Save all the packages for a group of categories temporarily in /tmp.
+# This is needed, because we allow different categories for different packages.
+# We could do this with an array of some sort, but would lose POSIX-compliancy.
+pkg_tempsave() {
+	for cat in $(echo "$CATS" | tr ' ' '\n'); do
+		for pkg in $PKGS; do
+			echo "$pkg" >> /tmp/pakt-dry/"$cat"
 		done
-		;;
-	"-a")
-		# TODO PLAN
-		# dry-adds categories just like in pakt
-		;;
-	"-r")
-		# TODO PLAN
-		# dry-removes categories just like in pakt
-		;;
-esac
+	done
+
+	PKGS=""
+	CATS="$DEFAULT_CATEGORIES"
+}
+
+# Temporary path storing new package and category data.
+mkdir -p /tmp/pakt-dry
+
+for arg in $(echo "$REST" | tr ' ' '\n'); do
+	case "$arg" in
+		"+"*)
+			arg=$(echo "$arg" | tr ',' ' ')
+			CATS="${CATS} ${arg#+}"
+
+			# This is used to detect when a package is declared after a category.
+			# When that happens, we want to first save the package and category data before resetting both.
+			TRANSACTION_READY=0
+			;;
+		*)
+			# See comment above.
+			if [ "$TRANSACTION_READY" -eq 0 ]; then
+				pkg_tempsave
+				TRANSACTION_READY=1
+			fi
+
+			PKGS="${PKGS} ${arg}"
+			;;
+	esac
+done
 
 # Save the last packages.
 pkg_tempsave
 
-# TODO NOTE dont keep it if there is a special action for no arguments
 # Omits the rest of the script if no category tomfoolery was performed.
 if [ ! "$(ls /tmp/pakt-dry)" ]; then
 	exit
@@ -115,10 +128,10 @@ for tmpfile in /tmp/pakt-dry/*; do
 	touch $catfile
 
 	for pkg in $(cat "$tmpfile"); do
-		if [ -e "${REMOVE_MODE:-}" ]; then
+		if [ "$FLAG" = "-r" ]; then
 			# Remove package from category file.
 			# You can't pipe directly into tmpfile because it would encounter an empty file.
-			sed -n "/^$pkg\$/"'!'"p" "$catfile" | tee "$catfile" > /dev/null
+			sed -i "/^$pkg$/d" "$catfile"
 		elif [ "$pkg" != "$(grep "^$pkg\$" "$catfile")" ]; then
 			# Add package to category file, if not already there.
 			echo "$pkg" >> "$catfile"
