@@ -11,5 +11,10 @@ DEFAULT_CATEGORIES="default"
 # If you want to use a tool that is normally invoked with sudo (or doas), include it here.
 PACKAGE_MANAGER="sudo pacman"
 
+# Whether pakt should automatically remove category files if they become empty.
+# 0 - no
+# 1 - yes
+REMOVE_EMPTY_CATFILES=0
+
 # Also if you want to change the location of this config file:
 # Export PAKT_CONF_PATH to the directory (e.g. /home/user/.config/pakt) with an absolute path (without / at the end).

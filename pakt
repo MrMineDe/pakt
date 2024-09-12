@@ -119,3 +119,8 @@ done
 
 # At last we want to clean up, so we don't work on the packages from last time.
 rm -r "/tmp/pakt"
+
+# Clears empty catfiles from DATA_PATH. See the third setting in your `pakt.conf`.
+if [ "$REMOVE_EMPTY_CATFILES" -eq 1 ]; then
+	find "$DATA_PATH" -type f -empty -delete
+fi
