@@ -39,7 +39,7 @@ If you include these flags when uninstalling packages, their names will be remov
 
 \fIpakt\fR -S neovim +cli pipewire +sound
 .br
-       neovim gets assigned to `cli`, pipewire to `sound`.
+       neovim gets assigned to \fBcli\fR, pipewire to \fBsound\fR.
 .br
        You can write as much of these pairs as you like.
 
@@ -47,7 +47,7 @@ If you include these flags when uninstalling packages, their names will be remov
 .br
        Categories follow a comma-separated syntax.
 .br
-       neovim gets assigned to `core`, `cli` and `dev`, htop to none.
+       neovim gets assigned to \fBcore\fR, \fBcli\fR and \fBdev\fR, htop to none.
 
 \fIpakt\fR -S neovim ++
 .br
@@ -57,15 +57,15 @@ If you include these flags when uninstalling packages, their names will be remov
 
 \fIpakt\fR -Rcnsu neovim +dev
 .br
-       neovim will be uninstalled and removed from the `dev` category,
+       neovim will be uninstalled and removed from the \fBdev\fR category,
 .br
-       not from `core` and `cli` though.
+       not from \fBcore\fR and \fBcli\fR though.
 
 \fIpakt\fR -Rcnsu neovim ++
 .br
        neovim will be uninstalled and removed from all its categories,
 .br
-       including `core`, `cli` and `dev`.
+       including \fBcore\fR, \fBcli\fR and \fBdev\fR.
 
 .SH ENVIRONMENT
 PAKT_CONF_PATH

@@ -5,8 +5,8 @@
 
 # Help message part.
 if [ "$#" -eq 0 ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-	echo "PAKT: shamelessly redirecting you to the manpage ..."
-	sleep 3
+	echo "PAKT-DRY: shamelessly redirecting you to the manpage ..."
+	sleep 2
 	man pakt-dry
 	exit
 fi
@@ -33,7 +33,7 @@ fi
 
 # Check whether pakt.conf exists in the first place.
 if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
-	echo "PAKT: ERROR: /etc/pakt.conf not found."
+	echo "PAKT-DRY: ERROR: /etc/pakt.conf not found."
 	exit 1
 fi
 
@@ -43,7 +43,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-*)
 			if [ -n "$FLAG" ]; then
-				echo "PAKT: ERROR: pakt only takes one flag. Exiting ..."
+				echo "PAKT-DRY: ERROR: pakt only takes one flag. Exiting ..."
 				exit 1
 			fi
 			FLAG="$arg"
@@ -58,7 +58,7 @@ case "$FLAG" in
 		;;
 	"")
 		for arg in $(echo "$REST" | tr ' ' '\n'); do
-			echo -e "$arg\n--------------------"
+			echo -e "> $arg"
 			case "$arg" in
 				"+"*)
 					cat "$DATA_PATH/${arg#+}"
