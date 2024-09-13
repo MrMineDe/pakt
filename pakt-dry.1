@@ -6,9 +6,9 @@ pakt-dry \- perform relevant pakt category actions
 .SH SYNOPSIS
 \fIpakt-dry\fR (category|path) ...
 .LP
-\fIpakt-dry \fB-a\fR (package ... category ...) ...
+\fIpakt-dry \fB-S\fR (package ... category ...) ...
 .LP
-\fIpakt-dry \fB-r\fR (package ... category ...) ...
+\fIpakt-dry \fB-R\fR (package ... category ...) ...
 
 .SH DESCRIPTION
 pakt-dry is a pakt suite script responsible for querying and manipulating category files without performing actual pacman transactions.
@@ -22,19 +22,19 @@ To look up the category syntax, see \fBpakt\fR(1).
 .br
        Shows this man page.
 
-\fB-a\fR, \fB--add\fR
+\fB-S\fR, \fB--sync\fR
 .br
        Performs the same category assignment as when installing packages with pakt
 .br
        but no packages will be installed.
 
-\fB-r\fR, \fB--remove\fR
+\fB-R\fR, \fB--remove\fR
 .br
        Performs the same category deletion as when uninstalling packages with pakt
 .br
        but no packages will be uninstalled.
 
-No arguments at all will take you to this manpage, if the \fBman\fR command is available.
+No arguments at all will take you to this man page, if the \fBman\fR command is available.
 
 .SH EXAMPLES
 \fIpakt-dry\fR +core,cli
@@ -47,13 +47,13 @@ No arguments at all will take you to this manpage, if the \fBman\fR command is a
 .br
        Besides the former action, also prints out the contents of \fI~/Documents/arch_stuff.txt\fR.
 
-\fIpakt-dry\fR -a neovim +core,cli,dev
+\fIpakt-dry\fR -S neovim +core,cli,dev
 .br
        Assigns neovim to the categories \fBcore\fR, \fBcli\fR and \fBdev\fR, regardless whether
 .br
        neovim is actually installed.
 
-\fIpakt-dry\fR -r neovim +dev
+\fIpakt-dry\fR -R neovim +dev
 .br
        Removes neovim from category \fBdev\fR only but keeps neovim on the system, if
 .br

@@ -55,7 +55,7 @@ REMOVE_MODE=1
 # Help message part.
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 	echo "PAKT: Displaying your package manager's help message.
-	If you wanted to see pakt, see the manpage at \`man pakt\`
+	If you wanted to see pakt, see the man page at \`man pakt\`
 	"
 fi
 

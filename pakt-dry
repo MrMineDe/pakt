@@ -5,7 +5,7 @@
 
 # Help message part.
 if [ "$#" -eq 0 ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-	echo "PAKT-DRY: shamelessly redirecting you to the manpage ..."
+	echo "PAKT-DRY: shamelessly redirecting you to the man page ..."
 	sleep 2
 	man pakt-dry
 	exit
@@ -54,7 +54,7 @@ for arg in "$@"; do
 done
 
 case "$FLAG" in
-	"-a"|"--add"|"-r"|"--remove")
+	"-S"|"--sync"|"-R"|"--remove")
 		;;
 	"")
 		for arg in $(echo "$REST" | tr ' ' '\n'); do
@@ -139,7 +139,7 @@ for tmpfile in /tmp/pakt-dry/*; do
 	touch $catfile
 
 	for pkg in $(cat "$tmpfile"); do
-		if [ "$FLAG" = "-r" ] || [ "$FLAG" = "--remove" ]; then
+		if [ "$FLAG" = "-R" ] || [ "$FLAG" = "--remove" ]; then
 			# Remove package from category file.
 			# You can't pipe directly into tmpfile because it would encounter an empty file.
 			sed -i "/^$pkg$/d" "$catfile"
