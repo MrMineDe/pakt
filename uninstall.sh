@@ -1,27 +1,27 @@
 #!/bin/sh
 
-echo "Uninstalling pakt ..."
+echo -e "Uninstalling pakt ...\n"
 
-echo "Removing executables at /usr/bin/pakt, /usr/bin/pakt-dry, /usr/bin/pakt-sync ..."
-rm /usr/bin/pakt
-rm /usr/bin/pakt-dry
-rm /usr/bin/pakt-sync
+# Scripts
+rm -v /usr/bin/pakt
+rm -v /usr/bin/pakt-dry
+rm -v /usr/bin/pakt-sync
 
-echo "Removing man pages ..."
-rm /usr/share/man/man1/pakt.1.gz
-rm /usr/share/man/man1/pakt-dry.1.gz
-rm /usr/share/man/man1/pakt-sync.1.gz
+# Manpages
+rm -v /usr/share/man/man1/pakt.1.gz
+rm -v /usr/share/man/man1/pakt-dry.1.gz
+rm -v /usr/share/man/man1/pakt-sync.1.gz
 
-echo "Removing default config at /etc/pacman.conf.example ..."
-rm /etc/pakt.conf.default
+# Default config
+rm -v /etc/pakt.conf.default
 
+# Config
 while true; do
 	read -p "Do you want to remove your config at /etc/pakt.conf? [Y/n] " response
 
 	case "$response" in
 		[Yy]|[Yy][Ee][Ss]|"")
-			echo "Removing /etc/pakt.conf ..."
-			rm /etc/pakt.conf
+			rm -v /etc/pakt.conf
 			break
 			;;
 		[Nn]|[Nn][Oo])
@@ -33,4 +33,4 @@ while true; do
 	esac
 done
 
-echo "Goodbye :["
+echo -e "\nGoodbye :["
