@@ -48,7 +48,9 @@ fi
 CMD="$PACKAGE_MANAGER"
 CATS="$DEFAULT_CATEGORIES"
 PKGS=""
+IS_TRANSACTION_COMMAND=0
 TRANSACTION_READY=1
+REMOVE_MODE=1
 
 # Help message part.
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
@@ -59,8 +61,15 @@ fi
 
 for arg in "$@"; do
 	case "$arg" in
-		-*)
+		"-S"*)
 			CMD="${CMD} ${arg}"
+			;;
+		"-R"*)
+			CMD="${CMD} ${arg}"
+			REMOVE_MODE=0
+			;;
+		"-"*)
+			IS_TRANSACTION_COMMAND=1
 			;;
 		"++")
 			CATS=$(ls "$DATA_PATH")
@@ -91,8 +100,19 @@ done
 pkg_tempsave
 
 # Execute pacman.
-if ! $CMD ; then
-	echo "PAKT: ERROR: Package manager returned a fail. Exiting..."
+$CMD
+
+# Stops the category tomfoolery if pakt found a flag other than -S and -R.
+# This could mean that the flag requires another argument. That would destroy
+# pakt's parsing algorithm. Maybe it's just not a transaction command.
+# Either way, we're out of here.
+if [ "$IS_TRANSACTION_COMMAND" -eq 1 ]; then
+	echo "PAKT: NOTE: this doesn't look like a job for me. Exiting ..."
+	exit 0
+fi
+
+if ! "$?" ; then
+	echo "PAKT: ERROR: package manager failed. Exiting..."
 	exit 1
 fi
 
@@ -106,7 +126,7 @@ for tmpfile in /tmp/pakt/*; do
 	touch $catfile
 
 	for pkg in $(cat "$tmpfile"); do
-		if echo "$CMD" | grep -q "\-R"; then
+		if [ "$REMOVE_MODE" -eq 0 ]; then
 			# Remove package from category file.
 			# You can't pipe directly into tmpfile because it would encounter an empty file.
 			sed -i "/^$pkg$/d" "$catfile"
