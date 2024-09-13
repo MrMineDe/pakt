@@ -28,16 +28,16 @@ mkdir -p "$DATA_PATH"
 
 # Control/set config path variable.
 if [ -z "${PAKT_CONF_PATH:-}" ]; then
-	PAKT_CONF_PATH="/etc/pakt.conf"
+	PAKT_CONF_PATH="/etc"
 fi
 
-# Create new pakt.conf if none exists.
-if [ ! -e "$PAKT_CONF_PATH" ]; then
+# Check whether pakt.conf exists in the first place.
+if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
 	echo "PAKT: ERROR: /etc/pakt.conf not found."
 	exit 1
 fi
 
-. "$PAKT_CONF_PATH"
+. "$PAKT_CONF_PATH/pakt.conf"
 
 for arg in "$@"; do
 	case "$arg" in

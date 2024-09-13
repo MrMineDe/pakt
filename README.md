@@ -58,7 +58,7 @@ sudo sh uninstall.sh
 ```
 
 ## Configuration
-The configuration is usually done in `/etc/pakt.conf`. By exporting a `PAKT_CONF_PATH` in your shell config (e.g. `~/.bashrc`), you can determine another path for this file.
+The configuration is usually done in `/etc/pakt.conf`. By exporting a `PAKT_CONF_PATH` in your shell config (e.g. `~/.bashrc`), you can set another path for `pakt.conf`.
 
 In the file, you can choose an AUR helper for Pakt to wrap around, or just keep Pacman.
 

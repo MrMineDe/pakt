@@ -1,4 +1,4 @@
-.TH "PAKT" "1" "August 2024" "pakt v0.0.1" "User Commands"
+.TH "PAKT" "1" "September 2024" "pakt v0.0.1" "User Commands"
 
 .SH NAME
 pakt \- categorize installed Arch Linux packages
@@ -7,19 +7,89 @@ pakt \- categorize installed Arch Linux packages
 \fIpakt\fR <pacman or AUR helper arguments + categories>
 
 .SH DESCRIPTION
-TODO DESCRIPTION
+pakt is a POSIX-compliant shell wrapper around pacman or an AUR helper of your choice. It adds "categories" as a new feature of your package manager. It means that while you install packages, you can assign tags in order to group them and gain an overview over your system.
+
+The package names will be put into files with the name of the respective categories. The path to look for is either \fI$XDG_DATA_HOME/pakt/\fR or \fI~/.local/share/pakt/\fR.
 
 .SH OPTIONS
-TODO OPTIONS
+You should be able to alias pakt to the name of your package manager, therefore the arguments are the same, with the exception of category flags.
+
++\fIcategory1\fR
+.br
+       Assigns the packages written before to \fIcategory1\fR.
+
++\fIcategory1\fR,\fIcategory2\fR,\fIcategory3\fR
+.br
+       Assigns the packages written before to \fIcategory1\fR, \fIcategory2\fR and \fIcategory3\fR.
+
+++
+.br
+       Assigns the packages written before to all currently existing categories.
+
+If you include these flags when uninstalling packages, their names will be removed from the respective categories. Otherwise, they will stay in the category files.
+
+.SH EXAMPLES
+\fIpakt\fR -S neovim
+.br
+       Categories are optional, of course.
+
+\fIpakt\fR -S neovim +cli
+.br
+       Category syntax in its simplest form.
+
+\fIpakt\fR -S neovim +cli pipewire +sound
+.br
+       neovim gets assigned to `cli`, pipewire to `sound`.
+.br
+       You can write as much of these pairs as you like.
+
+\fIpakt\fR -S neovim +core,cli,dev htop
+.br
+       Categories follow a comma-separated syntax.
+.br
+       neovim gets assigned to `core`, `cli` and `dev`, htop to none.
+
+\fIpakt\fR -S neovim ++
+.br
+       neovim gets assigned to all categories that have a file
+.br
+       at \fI$XDG_DATA_HOME/pakt/\fR or \fI~/.local/share/pakt/\fR.
+
+\fIpakt\fR -Rcnsu neovim +dev
+.br
+       neovim will be uninstalled and removed from the `dev` category,
+.br
+       not from `core` and `cli` though.
+
+\fIpakt\fR -Rcnsu neovim ++
+.br
+       neovim will be uninstalled and removed from all its categories,
+.br
+       including `core`, `cli` and `dev`.
 
 .SH ENVIRONMENT
-TODO ENVIRONMENT
+PAKT_CONF_PATH
+.br
+       Path of the \fIpakt.conf\fR configuration file. Defaults to \fI/etc\fR.
 
 .SH FILES
-TODO FILES
+\fI/etc/pakt.conf\fR
+.br
+       Default address of the configuration file. Look into the file for more information.
+
+\fI/etc/pakt.conf.default\fR
+.br
+       Default configuration options for \fIpakt.conf\fR.
+.br
+       It's also a part of the souce code at \fIpakt.conf.default\fR.
+
+\fI~/.local/share/pakt/\fR
+.br
+       Path containing category files, if $XDG_DATA_HOME is not set.
+.br
+       Category files are plain lists of packages assigned to the respective category.
 
 .SH AUTHORS
-\" TODO ASK name
 Sergey Lavrent <https://github.com/hiimsergey>
 .LP
 MrMineDe <https://github.com/mrminede>
@@ -32,3 +102,6 @@ There is NO WARRANTY, to the extent permitted by the law.
 
 .SH BUGS
 https://github.com/mrminede/pakt/issues
+
+.SH SEE ALSO
+\fBpakt-sync\fR(1) \fBpakt-dry\fR(1)
