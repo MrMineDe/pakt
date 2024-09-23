@@ -4,14 +4,14 @@
 pakt-sync \- perform transactions from entire category files
 
 .SH SYNOPSIS
-\fIpakt-dry\fR \fB-S\fR (category|path) ...
+\fIpakt-sync\fR \fB-S\fR (category|path) ...
 .LP
-\fIpakt-dry \fB-R\fR (package|category) ...
+\fIpakt-sync \fB-R\fR (package|category) ...
 .LP
-\fIpakt-dry \fB-Q\fR [(package|category) ...]
+\fIpakt-sync \fB-Q\fR [(package|category) ...]
 
 .SH DESCRIPTION
-pakt-sync is a pakt suite script responsible for installing packages from list files, including your category files. Thus, it fulfills one of the purposes for categories in the first place, trying to kind of emulate NixOS' functionality.
+pakt-sync is a pakt suite script responsible for installing packages from list files, including your category files. Thus, it fulfills a core purpose for categories, trying to kind of emulate NixOS' functionality.
 
 You can either pass files by using the same plus character syntax as in pakt or giving a file path.
 
@@ -24,46 +24,34 @@ To look up the category syntax, see \fBpakt\fR(1).
 
 \fB-S\fR, \fB--sync\fR
 .br
-       Performs the same category assignment as when installing packages with pakt
-.br
-       but no packages will be installed.
+       Installs all packages listed line-by-line in the given +categories or file paths.
 
 \fB-R\fR, \fB--remove\fR
 .br
-       Performs the same category deletion as when uninstalling packages with pakt
-.br
-       but no packages will be uninstalled.
+       Removes all packages listed line-by-line in the given +categories or file paths.
 
 \fB-Q\fR, \fB--query\fR
 .br
-       Performs the same category deletion as when uninstalling packages with pakt
+       Shows not installed packages from the line-by-line lists in the given +categories
 .br
-       but no packages will be uninstalled.
+       or file paths.
 
 No arguments at all will take you to this man page, if the \fBman\fR command is available.
 
 .SH EXAMPLES
-\fIpakt-dry\fR +core,cli
+\fIpakt-sync\fR -S +dev
 .br
-       Prints out the contents of the files \fIcore\fR and \fIcli\fR at the category directory,
-.br
-       so either \fI~/.local/share/pakt/\fR or \fI$XDG_DATA_HOME/pakt/\fR, if $XDG_DATA_HOME is set.
+       Installs all packages listed in the \fBdev\fR category file.
 
-\fIpakt-dry\fR +core,cli ~/Documents/arch_stuff.txt
+\fIpakt-sync\fR -R ~/Downloads/xorg-packages.txt
 .br
-       Besides the former action, also prints out the contents of \fI~/Documents/arch_stuff.txt\fR.
+       Removes all packages listed line-by-line in the \fI~/Downloads/xorg-packages.txt\fR file.
 
-\fIpakt-dry\fR -a neovim +core,cli,dev
+\fIpakt-sync\fR -Q +cli ~/Documents/pacman_Qe_090124.txt
 .br
-       Assigns neovim to the categories \fBcore\fR, \fBcli\fR and \fBdev\fR, regardless whether
+       Lists all not installed packages both from the \fBcli\fR category and the
 .br
-       neovim is actually installed.
-
-\fIpakt-dry\fR -r neovim +dev
-.br
-       Removes neovim from category \fBdev\fR only but keeps neovim on the system, if
-.br
-       it was installed before.
+       \fI~/Documents/pacman_Qe_090124.txt\fR file.
 
 .SH ENVIRONMENT
 PAKT_CONF_PATH
