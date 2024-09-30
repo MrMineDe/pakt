@@ -1,5 +1,5 @@
 # Pakt
-Pakt (PAcman KaTegories) is a small collection of POSIX-compliant shell scripts for categorizing packages you install.
+Pakt (PAcman KaTegories) is a small collection of POSIX-compliant shell scripts for categorizing packages you install on Arch Linux.
 
 - [What are categories?](#what-are-categories)
 - [Use cases](#use-cases)
