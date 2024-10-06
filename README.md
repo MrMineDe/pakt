@@ -29,7 +29,7 @@ Just see the examples below.
 ## Use cases
 - Don't keep unused packages on your system by having an overview.
 - Set up your system by installing your packages from the category files (kinda like in NixOS).
-- Uninstall "temporary" packagees in batch (e.g. utilities for programming projects).
+- Uninstall "temporary" packages in batch (e.g. utilities for programming projects).
 
 ## `pakt`
 This is the main script, a wrapper around Pacman (or your AUR helper of choice). You can apply the same arguments to it as to Pacman, plus the category syntax.

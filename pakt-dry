@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
-# v0.0.1 GPL-2.0
+# v0.1.0 GPL-2.0
 # https://github.com/mrminede/pakt
 
 # Help message part.
@@ -29,7 +29,7 @@ fi
 
 # Check whether pakt.conf exists in the first place.
 if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
-	echo "PAKT-DRY: ERROR: /etc/pakt.conf not found."
+	echo "PAKT-DRY: ERROR: /etc/pakt.conf not found. Exiting ..."
 	exit 1
 fi
 
@@ -73,7 +73,7 @@ case "$FLAG" in
 		exit
 		;;
 	*)
-		echo "PAKT-DRY: ERROR: invalid flag: '$FLAG'"
+		echo "PAKT-DRY: ERROR: invalid flag: '$FLAG'. Exiting ..."
 		exit 1
 		;;
 esac
@@ -129,7 +129,7 @@ done
 # Save the last packages.
 pkg_tempsave
 
-# Omits the rest of the script if no category tomfoolery was performed.
+# Omit the rest of the script if no category tomfoolery was performed.
 if [ ! "$(ls /tmp/pakt-dry)" ]; then
 	exit
 fi
@@ -153,7 +153,7 @@ done
 # At last we want to clean up, so we don't work on the packages from last time.
 rm -r "/tmp/pakt-dry"
 
-# Clears empty catfiles from DATA_PATH. See the third setting in your `pakt.conf`.
+# Clear empty catfiles from DATA_PATH. See the third setting in your `pakt.conf`.
 if [ "$REMOVE_EMPTY_CATFILES" -eq 1 ]; then
 	find "$DATA_PATH" -type f -empty -delete
 fi

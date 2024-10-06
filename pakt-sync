@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
-# v0.0.1 GPL-2.0
+# v0.1.0 GPL-2.0
 # https://github.com/mrminede/pakt
 
 # Help message part.
@@ -29,7 +29,7 @@ fi
 
 # Check whether pakt.conf exists in the first place.
 if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
-	echo "PAKT: ERROR: /etc/pakt.conf not found."
+	echo "PAKT: ERROR: /etc/pakt.conf not found. Exiting ..."
 	exit 1
 fi
 
@@ -71,6 +71,7 @@ done
 case "$FLAG" in
 	"")
 		for pkg in $(echo "$PKGS" | tr ' ' '\n'); do
+			# Check whether pkg is an installed Arch package.
 			if ! pacman -Qs "$pkg" > /dev/null; then
 				echo "$pkg"
 			fi
@@ -83,7 +84,7 @@ case "$FLAG" in
 		eval "$PACKAGE_MANAGER -Rcnsu $PKGS"
 		;;
 	*)
-		echo "PAKT-SYNC: ERROR: invalid flag(s): '$FLAG'"
+		echo "PAKT-SYNC: ERROR: invalid flag(s): '$FLAG'. Exiting ..."
 		exit 1
 		;;
 esac

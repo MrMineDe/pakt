@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
-# v0.0.1 GPL-2.0
+# v0.1.0 GPL-2.0
 # https://github.com/mrminede/pakt
 
 # Save all the packages for a group of categories temporarily in /tmp.
@@ -38,7 +38,7 @@ fi
 
 # Check whether pakt.conf exists in the first place.
 if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
-	echo "PAKT: ERROR: /etc/pakt.conf not found."
+	echo "PAKT: ERROR: /etc/pakt.conf not found. Exiting ..."
 	exit 1
 fi
 
@@ -102,13 +102,13 @@ pkg_tempsave
 # Execute pacman.
 $CMD
 
-# Stops the category tomfoolery if pakt found a flag other than -S and -R.
+# Stop the category tomfoolery if pakt found a flag other than -S and -R.
 # This could mean that the flag requires another argument. That would destroy
 # pakt's parsing algorithm. Maybe it's just not a transaction command.
 # Either way, we're out of here.
 if [ "$IS_TRANSACTION_COMMAND" -eq 1 ]; then
 	echo "PAKT: NOTE: this doesn't look like a job for me. Exiting ..."
-	exit 0
+	exit
 fi
 
 if [ ! "$?" ]; then
@@ -116,7 +116,7 @@ if [ ! "$?" ]; then
 	exit 1
 fi
 
-# Omits the rest of the script if no category tomfoolery was performed.
+# Omit the rest of the script if no category tomfoolery was performed.
 if [ ! "$(ls /tmp/pakt)" ]; then
 	exit
 fi
@@ -140,7 +140,7 @@ done
 # At last we want to clean up, so we don't work on the packages from last time.
 rm -r "/tmp/pakt"
 
-# Clears empty catfiles from DATA_PATH. See the third setting in your `pakt.conf`.
+# Clear empty catfiles from DATA_PATH. See the third setting in your `pakt.conf`.
 if [ "$REMOVE_EMPTY_CATFILES" -eq 1 ]; then
 	find "$DATA_PATH" -type f -empty -delete
 fi
