@@ -65,14 +65,14 @@ See also the man page.
 
 ### Examples
 ```
+# Lists all not installed packages both from the "cli" category and ~/Documents/pacman_Qe_090124.txt
+pakt-sync +cli ~/Documents/pacman_Qe_090124.txt
+
 # Installs all packages listed in the "dev" category file
 pakt-sync -S +dev
 
 # Removes all packages listed line-by-line in the ~/Downloads/xorg-packages.txt file
 pakt-sync -R ~/Downloads/xorg-packages.txt
-
-# Lists all not installed packages both from the "cli" category and ~/Documents/pacman_Qe_090124.txt
-pakt-sync -Q +cli ~/Documents/pacman_Qe_090124.txt
 
 # Installs all packages from all categories you have
 pakt-sync -S ++

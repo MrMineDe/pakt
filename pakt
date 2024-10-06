@@ -111,7 +111,7 @@ if [ "$IS_TRANSACTION_COMMAND" -eq 1 ]; then
 	exit 0
 fi
 
-if ! "$?" ; then
+if [ ! "$?" ]; then
 	echo "PAKT: ERROR: package manager failed. Exiting..."
 	exit 1
 fi

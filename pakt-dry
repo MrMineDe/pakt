@@ -11,10 +11,6 @@ if [ "$#" -eq 0 ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 	exit
 fi
 
-# Process variables
-FLAG=""
-REST=""
-
 # Strict mode. The script will throw an error on an unbound variable encounter.
 set -u
 
@@ -39,9 +35,13 @@ fi
 
 . "$PAKT_CONF_PATH/pakt.conf"
 
+# Process variables
+FLAG=""
+REST=""
+
 for arg in "$@"; do
 	case "$arg" in
-		-*)
+		"-"*)
 			if [ -n "$FLAG" ]; then
 				echo "PAKT-DRY: ERROR: pakt only takes one flag. Exiting ..."
 				exit 1
@@ -73,7 +73,7 @@ case "$FLAG" in
 		exit
 		;;
 	*)
-		echo "PAKT-DRY: ERROR: invalid flag '$FLAG'"
+		echo "PAKT-DRY: ERROR: invalid flag: '$FLAG'"
 		exit 1
 		;;
 esac

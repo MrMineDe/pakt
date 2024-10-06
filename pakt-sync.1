@@ -4,11 +4,11 @@
 pakt-sync \- perform transactions from entire category files
 
 .SH SYNOPSIS
+\fIpakt-sync [(package|category) ...]
+.LP
 \fIpakt-sync\fR \fB-S\fR (category|path) ...
 .LP
 \fIpakt-sync \fB-R\fR (package|category) ...
-.LP
-\fIpakt-sync \fB-Q\fR [(package|category) ...]
 
 .SH DESCRIPTION
 pakt-sync is a pakt suite script responsible for installing packages from list files, including your category files. Thus, it fulfills a core purpose for categories, trying to kind of emulate NixOS' functionality.
@@ -18,6 +18,12 @@ You can either pass files by using the same plus character syntax as in pakt or 
 To look up the category syntax, see \fBpakt\fR(1).
 
 .SH OPTIONS
+\fB<none>\fR
+.br
+       Shows not installed packages from the line-by-line lists in the given +categories
+.br
+       or file paths.
+
 \fB-h\fR, \fB--help\fR
 .br
        Shows this man page.
@@ -30,15 +36,15 @@ To look up the category syntax, see \fBpakt\fR(1).
 .br
        Removes all packages listed line-by-line in the given +categories or file paths.
 
-\fB-Q\fR, \fB--query\fR
-.br
-       Shows not installed packages from the line-by-line lists in the given +categories
-.br
-       or file paths.
-
 No arguments at all will take you to this man page, if the \fBman\fR command is available.
 
 .SH EXAMPLES
+\fIpakt-sync\fR +cli ~/Documents/pacman_Qe_090124.txt
+.br
+       Lists all not installed packages both from the \fBcli\fR category and the
+.br
+       \fI~/Documents/pacman_Qe_090124.txt\fR file.
+
 \fIpakt-sync\fR -S +dev
 .br
        Installs all packages listed in the \fBdev\fR category file.
@@ -46,12 +52,6 @@ No arguments at all will take you to this man page, if the \fBman\fR command is 
 \fIpakt-sync\fR -R ~/Downloads/xorg-packages.txt
 .br
        Removes all packages listed line-by-line in the \fI~/Downloads/xorg-packages.txt\fR file.
-
-\fIpakt-sync\fR -Q +cli ~/Documents/pacman_Qe_090124.txt
-.br
-       Lists all not installed packages both from the \fBcli\fR category and the
-.br
-       \fI~/Documents/pacman_Qe_090124.txt\fR file.
 
 .SH ENVIRONMENT
 PAKT_CONF_PATH

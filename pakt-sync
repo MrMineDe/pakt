@@ -3,138 +3,87 @@
 # v0.0.1 GPL-2.0
 # https://github.com/mrminede/pakt
 
-# maybe there is a better approach, but this allows for easy use in if statement without [] aka test command, which results in problems
-stringNotContain() { case $1 in *$2* ) return 1;; *) return 0;; esac ;}
-
-if [ "$1" = "--pakt-help" ] || [ "$1" = "-h" ]; then
-	echo "This tool allows you to sync all packages installed on the system with the categoryfiles you provide.\n \
-		Syntax: pakt-sync +cat1 +test2 +def +cli"
+# Help message part.
+if [ "$#" -eq 0 ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+	echo "PAKT-SYNC: shamelessly redirecting you to the man page ..."
+	sleep 2
+	man pakt-sync
 	exit
 fi
 
-# Source the config file.
-if [ -z "$PAKT_CONFIG_PATH" ]; then
-        CONF_PATH="/etc/pakt.conf"
+# Strict mode. The script will throw an error on an unbound variable encounter.
+set -u
+
+# Check whether the data path was defined with XDG.
+if [ -z "${XDG_DATA_HOME:-}" ]; then
+	DATA_PATH="$HOME/.local/share/pakt"
 else
-        CONF_PATH="$PAKT_CONFIG_PATH"
+	DATA_PATH="$XDG_DATA_HOME/pakt"
+fi
+mkdir -p "$DATA_PATH"
+
+# Control/set config path variable.
+if [ -z "${PAKT_CONF_PATH:-}" ]; then
+	PAKT_CONF_PATH="/etc"
 fi
 
-# Now check if config file is there and load it.
-if [ -e "$CONF_PATH" ]; then
-        . "$CONF_PATH"
-else
-        echo "WARNING: Could not load config file! Loading default
-config at /etc/pakt.conf.default"
-        . /etc/pakt.conf.default
+# Check whether pakt.conf exists in the first place.
+if [ ! -e "$PAKT_CONF_PATH/pakt.conf" ]; then
+	echo "PAKT: ERROR: /etc/pakt.conf not found."
+	exit 1
 fi
 
-# shorten the config variable names
-CMD="$PACKAGE_MANAGER"
-CAT="$DEFAULT_CATEGORIES"
-PTH="$PAKT_PATH"
-# All installed packages
-ALL_PKG_CMD="$ALL_INSTALLED_PACKAGES_CMD"
-# All by user installed packages (excluding dependencies)
-MNL_PKG_CMD="$ALL_MANUAL_INSTALLED_PACKAGES_CMD"
-# We need the install and uninstall arguments, to complement $CMD so we can perform the necessary actions later on
-CMD_ARG_INSTALL="$PACKAGE_MANAGER_ARG_INSTALL"
-CMD_ARG_UNINSTALL="$PACKAGE_MANAGER_ARG_UNINSTALL"
+. "$PAKT_CONF_PATH/pakt.conf"
 
-# The Mode of the script. Possible are:
-# 1. Add: install all packages in provided files
-# 2. Remove: Remove all packages in provided files
-# 3. Normal Sync: Sync all installed packages with provided files
-# Default is Sync, but if "add" or "rm" is found as an argument it is changed
-MODE="sync"
+# Process variables
+FLAG=""
+FILES=""
+CATS=""
+PKGS=""
 
-for A in "$@"; do
-	case "$A" in
-		# if we see one of these we already printed the help page and can exit.
-		# We do this check, because all other - options, or rather anything else, that is not +cat is considered a syntax error
-		"-h")
-			exit
-		;;
-		"--pakt-help")
-			exit
-		;;
-		"add")
-			MODE="add"
-		;;
-		"rm")
-			MODE="rm"
-		;;
+for arg in "$@"; do
+	case "$arg" in
+		"-"*)
+			FLAG="${FLAG}${arg}"
+			;;
 		"+"*)
-			# This allows the syntax of: +cat1,cat2,test,cli
-			A=$(echo "$A" | tr ',' ' ')
-			CAT="${CAT} ${A#+}"
-		;;
+			CATS="${CATS} ${arg}"
+			;;
 		*)
-			echo "Error: Syntax! See -h or --pakt-help for more help"
-			exit
-		;;
+			FILES="${FILES} ${arg}"
+			;;
 	esac
 done
 
-# Sync the packages
-if [ "$MODE" = "add" ]; then
-	for c in $CAT; do
-		while read -r p; do
-			# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
-			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
-				PAC_ADD="${PAC_ADD} ${p}"
+for file in $(echo "$FILES" | tr ' ' '\n'); do
+	# The awk command cuts comments (hash characters and everything after them)
+	# and merges all lines into one.
+	file_pkgs=$(awk '!/^#/ { sub(/#.*/, ""); printf "%s ", $0 }' "$file")
+	PKGS="${PKGS} ${file_pkgs}"
+done
+
+for cat in $(echo "$CATS" | tr ' ' '\n'); do
+	# See comment above.
+	cat_pkgs=$(awk '!/^#/ { sub(/#.*/, ""); printf "%s ", $0 }' "$DATA_PATH/${cat#+}")
+	PKGS="${PKGS} ${cat_pkgs}"
+done
+
+case "$FLAG" in
+	"")
+		for pkg in $(echo "$PKGS" | tr ' ' '\n'); do
+			if ! pacman -Qs "$pkg" > /dev/null; then
+				echo "$pkg"
 			fi
-		done < "$PTH/$c"
-	done
-elif [ "$MODE" = "rm" ]; then
-	for c in $CAT; do
-		PAC_DEL="${PAC_DEL} $(cat "$PTH/$c")"
-	done
-	# We only want to remove packages we have installed.
-	PAC_ORIG_FILE=$(mktemp)
-	PAC_DEL_FILE=$(mktemp)
-	$ALL_PKG_CMD | tr ' ' '\n' | sort > "$PAC_DEL_FILE"
-	echo "$PAC_DEL" | tr ' ' '\n' | sort > "$PAC_ORIG_FILE"
-
-	PAC_DEL=$(comm -12 "$PAC_ORIG_FILE" "$PAC_DEL_FILE"| tr '\n' ' ')
-
-elif [ "$MODE" = "sync" ]; then
-	PAC_DEL=$($MNL_PKG_CMD)
-	PAC_BASE=$($ALL_PKG_CMD)
-	PAC_ADD=""
-
-	# We want to combine all the categoriyfiles we got as parameter
-	for c in $CAT; do
-		# We unfortunately have to do this for every entry in every categoryfile...
-		while read -r p; do
-			# PAC_DEL should include all packages implicitly installed on the system by the user that are not in the categoryfiles
-			PAC_DEL=$(echo "$PAC_DEL" | tr ' ' '\n' | grep -v "^$p\$")
-			# PAC_ADD should include all packages of the categoryfiles, that are not installed on the system
-			if stringNotContain "$(echo "$PAC_BASE" | tr '\n' ' ')" " $p "; then
-				PAC_ADD="${PAC_ADD} ${p}"
-			fi
-		done < "$PTH/$c"
-	done
-	# We convert spaces to new lines for grep a few lines ago, for pacman we need to reverse that
-	PAC_DEL=$(echo "$PAC_DEL" | tr '\n' ' ')
-fi
-
-# To be safe, we print the Packages to remove and install before calling pacman
-if [ -n "$PAC_DEL" ]; then
-	echo "Removing(dependencies not listed): $PAC_DEL"
-fi
-if [ -n "$PAC_ADD" ]; then
-	echo "Installing: $PAC_ADD"
-fi
-# Finally sync the packages
-if [ -n "$PAC_DEL" ]; then
-	if ! $CMD $CMD_ARG_UNINSTALL $PAC_DEL; then
-		echo "Pacman returned a fail. Exiting..."
-		exit
-	fi
-fi
-if [ -n "$PAC_ADD" ]; then
-	if ! $CMD $CMD_ARG_INSTALL $PAC_ADD; then
-		echo "Pacman returned a fail. Exiting..."
-		exit
-	fi
-fi
+		done
+		;;
+	"-S"|"--sync")
+		eval "$PACKAGE_MANAGER -S $PKGS"
+		;;
+	"-R"|"--remove")
+		eval "$PACKAGE_MANAGER -Rcnsu $PKGS"
+		;;
+	*)
+		echo "PAKT-SYNC: ERROR: invalid flag(s): '$FLAG'"
+		exit 1
+		;;
+esac
