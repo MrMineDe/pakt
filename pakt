@@ -3,6 +3,13 @@
 # v0.1.0 GPL-2.0
 # https://github.com/mrminede/pakt
 
+# Help message part.
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+	echo "PAKT: Displaying your package manager's help message.
+	If you wanted to see pakt, see the man page at \`man pakt\`
+	"
+fi
+
 # Save all the packages for a group of categories temporarily in /tmp.
 # This is needed, because we allow different categories for different packages.
 # We could do this with an array of some sort, but would lose POSIX-compliancy.
@@ -51,13 +58,6 @@ PKGS=""
 IS_TRANSACTION_COMMAND=0
 TRANSACTION_READY=1
 REMOVE_MODE=1
-
-# Help message part.
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-	echo "PAKT: Displaying your package manager's help message.
-	If you wanted to see pakt, see the man page at \`man pakt\`
-	"
-fi
 
 for arg in "$@"; do
 	case "$arg" in
@@ -108,7 +108,7 @@ $CMD
 # Either way, we're out of here.
 if [ "$IS_TRANSACTION_COMMAND" -eq 1 ]; then
 	echo "PAKT: NOTE: this doesn't look like a job for me. Exiting ..."
-	exit
+	exit 1
 fi
 
 if [ ! "$?" ]; then
