@@ -4,7 +4,7 @@ echo -e "Starting pakt intallation ...\n"
 
 # Scripts
 install -vm 755 pakt /usr/bin/pakt
-install -vm 755 pakt-sync /usr/bin/pakt-dry
+install -vm 755 pakt-dry /usr/bin/pakt-dry
 install -vm 755 pakt-sync /usr/bin/pakt-sync
 
 # Manpages
