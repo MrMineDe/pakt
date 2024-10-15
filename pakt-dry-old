@@ -1,0 +1,112 @@
+#!/bin/sh
+# Pakt (PAcman KaTegories) - Pacman wrapper for categorizing packages
+# TODO VERSION GPL-2.0
+# https://github.com/mrminede/pakt
+
+# Save all the packages for a group of categories temporarily in /tmp.
+# This is needed, because we allow different categories for different packages.
+# We could do this with an array of some sort, but would lose POSIX-compliancy.
+pkg_tempsave() {
+	for c in $(echo "$CAT" | tr ' ' '\n'); do
+		for p in $PAC; do
+			echo "$p" >> /tmp/pakt/"$c"
+		done
+	done
+
+	PAC=""
+	CAT="$DEFAULT_CATEGORIES"
+}
+
+if [ "$#" -eq 0 ] || [ "$1" = "--pakt-help" ]; then
+	echo "pakt-dry is for all actions, that do not involve the package manager (installing/removing packages). \n \
+	Currently these are: \n \
+	1. print out the content of all provided categoryfiles with pakt-dry print +cat1,cat2 +cat3\n \
+	2. add/remove packages from all provided categoryfiles with pakt-dry firefox +cat1,cat2 -cat3,cat4 (this removes firefox from cat3 and cat4 and adds it to cat1 and cat2"
+
+	exit
+fi
+
+# Source the config file.
+if [ -z "$PAKT_CONFIG_PATH" ]; then
+	CONF_PATH="/etc/pakt.conf"
+else
+	CONF_PATH="$PAKT_CONFIG_PATH"
+fi
+
+# Now check if config file is there and load it.
+if [ -e "$CONF_PATH" ]; then
+	. "$CONF_PATH"
+else
+	echo "WARNING: Could not load config file! Loading default config at /etc/pakt.conf.default"
+	. /etc/pakt.conf.default
+fi
+
+# shorten the config variable names
+CAT="$DEFAULT_CATEGORIES"
+PTH="$PAKT_PATH"
+
+PAC=""
+ARG_WAS_CAT=0
+
+# We need this dir in pkg_tempsave().
+mkdir -p /tmp/pakt
+
+for A in "$@"; do
+	case "$A" in
+		-*)
+			# This allows the syntax of: -cat1,cat2,test,cli
+			A=$(echo "$A" | tr ',' ' -')
+			CAT="${CAT} ${A}"
+			# ARG_WAS_CAT is used to detect, when a package is declared after a category.
+			# When that happens we want to first save the packages before to the categories before and then reset both.
+			ARG_WAS_CAT=1
+		;;
+		"+"*)
+			# This allows the syntax of: +cat1,cat2,test,cli
+			A=$(echo "$A" | tr ',' ' +')
+			CAT="${CAT} ${A}"
+			# ARG_WAS_CAT is used to detect, when a package is declared after a category.
+			# When that happens we want to first save the packages before to the categories before and then reset both.
+			ARG_WAS_CAT=1
+		;;
+		"print")
+			MODE=print
+		;;
+		*)
+			if [ $ARG_WAS_CAT -eq 1 ]; then
+				pkg_tempsave
+				ARG_WAS_CAT=0
+			fi
+			PAC="${PAC} ${A}"
+		;;
+	esac
+done
+
+# Save the last packages
+pkg_tempsave
+
+# Create path if it doesn't exist
+mkdir -p "$PTH"
+for f in /tmp/pakt/*; do
+	# We don't want f to be /tmp/pakt/filename, but rather only filename.
+	f=$(basename "$f")
+	# This will make sure, that there are no error messages about a category file not existing.
+	# These errors are not fatal, but the user should not see them!
+	touch "$PTH/$f"
+	for p in $(cat "/tmp/pakt/$f"); do
+		case $MODE in
+			S) # Add Package
+				# Check if package is already in file, then don't add it.
+				if [ "$p" != "$(grep "^$p\$" "$PTH/$f")" ]; then
+					echo "$p" >> "$PTH/$f"
+				fi
+				;;
+			R) # Remove Package
+				sed -n "/^$p\$/"'!'"p" "$PTH/$f" | tee "$PTH/$f" > /dev/null # You can't pipe directly into PTH/f bc the pipe is opened first, therefore the file is beeing cleared, therefore sed opens a empty file.
+				;;
+		esac
+	done
+done
+
+# At last we want to clean up, so we don't work on the packages from last time.
+rm "/tmp/pakt" -r

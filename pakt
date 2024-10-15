@@ -57,7 +57,7 @@ CATS="$DEFAULT_CATEGORIES"
 PKGS=""
 IS_TRANSACTION_COMMAND=0
 TRANSACTION_READY=1
-REMOVE_MODE=1
+REMOVE_MODE=0
 
 for arg in "$@"; do
 	case "$arg" in
@@ -66,10 +66,16 @@ for arg in "$@"; do
 			;;
 		"-R"*)
 			CMD="${CMD} ${arg}"
-			REMOVE_MODE=0
+			REMOVE_MODE=1
 			;;
 		"-"*)
-			IS_TRANSACTION_COMMAND=1
+			#if the arg is part of the nonstdargs (has input after the arg e.g. --output ARG2.
+			#We dont want to interpret ARG2 as a package, therefor we skip it)
+			for nonstdarg in $NON_STD_ARGS; do
+				if [ "$arg" -eq "$nonstdarg" ]; then
+					SKIP_ARG=1
+				fi
+			done
 			;;
 		"++")
 			CATS=$(ls "$DATA_PATH")
@@ -84,6 +90,11 @@ for arg in "$@"; do
 			TRANSACTION_READY=0
 			;;
 		*)
+			if [ $SKIP_ARG -eq 1 ]; then
+				SKIP_ARG=0
+				continue
+			fi
+
 			# See comment above.
 			if [ "$TRANSACTION_READY" -eq 0 ]; then
 				pkg_tempsave
@@ -102,10 +113,6 @@ pkg_tempsave
 # Execute pacman.
 $CMD
 
-# Stop the category tomfoolery if pakt found a flag other than -S and -R.
-# This could mean that the flag requires another argument. That would destroy
-# pakt's parsing algorithm. Maybe it's just not a transaction command.
-# Either way, we're out of here.
 if [ "$IS_TRANSACTION_COMMAND" -eq 1 ]; then
 	echo "PAKT: NOTE: this doesn't look like a job for me. Exiting ..."
 	exit 1
@@ -126,7 +133,7 @@ for tmpfile in /tmp/pakt/*; do
 	touch $catfile
 
 	for pkg in $(cat "$tmpfile"); do
-		if [ "$REMOVE_MODE" -eq 0 ]; then
+		if [ "$REMOVE_MODE" -eq 1 ]; then
 			# Remove package from category file.
 			# You can't pipe directly into tmpfile because it would encounter an empty file.
 			sed -i "/^$pkg$/d" "$catfile"
