@@ -17,6 +17,6 @@ gzip -v /usr/share/man/man1/pakt-sync.1
 
 # Config
 install -vm 644 pakt.conf.default /etc/pakt.conf.default
-cp -v /etc/pakt.conf.default /etc/pakt.conf
+cp -vn /etc/pakt.conf.default /etc/pakt.conf
 
 echo -e "\nInstallation complete :)"
