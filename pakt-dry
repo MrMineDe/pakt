@@ -58,8 +58,13 @@ case "$FLAG" in
 		;;
 	"")
 		for arg in $(echo "$REST" | tr ' ' '\n'); do
-			echo -e "> $arg"
+			echo "> $arg"
 			case "$arg" in
+				"++")
+					for catfile in $(find $DATA_PATH -type f); do
+						cat "$catfile"
+					done
+					;;
 				"+"*)
 					cat "$DATA_PATH/${arg#+}"
 					;;
