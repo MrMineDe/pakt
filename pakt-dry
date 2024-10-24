@@ -54,7 +54,7 @@ for arg in "$@"; do
 done
 
 case "$FLAG" in
-	"-S"|"--sync"|"-R"|"--remove")
+	"-S"*|"--sync"|"-R"*|"--remove")
 		;;
 	"")
 		for arg in $(echo "$REST" | tr ' ' '\n'); do
